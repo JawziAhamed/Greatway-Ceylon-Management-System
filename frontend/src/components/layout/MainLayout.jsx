@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import Topbar from './Topbar';
+import LockScreen from '../common/LockScreen';
+import { useAuth } from '../../context/AuthContext';
 import axiosClient from '../../api/axiosClient';
 
 const routeTitles = {
@@ -16,6 +18,7 @@ const routeTitles = {
 };
 
 export default function MainLayout() {
+  const { isLocked } = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [settings, setSettings] = useState(null);
   const location = useLocation();
@@ -45,6 +48,8 @@ export default function MainLayout() {
 
   return (
     <div className="min-h-screen bg-slate-50 flex">
+      {isLocked && <LockScreen />}
+
       {/* Sidebar */}
       <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 

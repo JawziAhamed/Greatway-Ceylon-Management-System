@@ -8,6 +8,7 @@ import {
   Package,
   Settings,
   LogOut,
+  Lock,
   ShieldCheck,
   Building2,
 } from 'lucide-react';
@@ -15,7 +16,7 @@ import { useAuth } from '../../context/AuthContext';
 import iconImg from '../../assets/icon.jpg';
 
 export default function Sidebar({ isOpen, onClose }) {
-  const { user, logout, isAdmin } = useAuth();
+  const { user, logout, lockSession, isAdmin } = useAuth();
   const navigate = useNavigate();
 
   const navLinks = [
@@ -105,13 +106,22 @@ export default function Sidebar({ isOpen, onClose }) {
               </div>
             </div>
 
-            <button
-              onClick={logout}
-              title="Logout"
-              className="p-1.5 text-brand-300 hover:text-white hover:bg-brand-800 rounded-lg transition"
-            >
-              <LogOut className="w-4 h-4" />
-            </button>
+            <div className="flex items-center gap-1 shrink-0">
+              <button
+                onClick={lockSession}
+                title="Lock Session Now"
+                className="p-1.5 text-brand-300 hover:text-amber-300 hover:bg-brand-800 rounded-lg transition"
+              >
+                <Lock className="w-4 h-4" />
+              </button>
+              <button
+                onClick={logout}
+                title="Logout"
+                className="p-1.5 text-brand-300 hover:text-white hover:bg-brand-800 rounded-lg transition"
+              >
+                <LogOut className="w-4 h-4" />
+              </button>
+            </div>
           </div>
         </div>
       </aside>
