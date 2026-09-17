@@ -9,7 +9,7 @@
     "frontend": "cd frontend && npm run dev",
     "seed": "cd backend && node utils/seedData.js",
     "build": "cd frontend && npm install && npm run build",
-    "postinstall": "cd backend && npm install && cd ../frontend && npm install"
+    "postinstall": "cd backend && npm install && npx puppeteer browsers install chrome && cd ../frontend && npm install"
   },
   "keywords": [
     "mern",

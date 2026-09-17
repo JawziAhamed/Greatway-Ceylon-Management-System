@@ -45,16 +45,62 @@ const getLaunchOptions = () => {
     return options;
   }
 
-  const commonLinuxPaths = [
+  const commonPaths = [
+    // Windows
+    'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',
+    'C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe',
+    'C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe',
+    // Linux
     '/usr/bin/google-chrome-stable',
     '/usr/bin/google-chrome',
     '/usr/bin/chromium',
     '/usr/bin/chromium-browser',
+    // macOS
+    '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
   ];
-  for (const p of commonLinuxPaths) {
+  for (const p of commonPaths) {
     if (fs.existsSync(p)) {
       options.executablePath = p;
       break;
+    }
+  }
+
+  if (!options.executablePath) {
+    const possibleCacheDirs = [
+      path.join(__dirname, '../.cache/puppeteer'),
+      path.join(process.cwd(), '.cache', 'puppeteer'),
+      path.join(process.cwd(), 'backend', '.cache', 'puppeteer'),
+      '/opt/render/.cache/puppeteer',
+      path.join(process.env.HOME || '', '.cache', 'puppeteer'),
+    ];
+    for (const cDir of possibleCacheDirs) {
+      if (fs.existsSync(cDir)) {
+        try {
+          const findChrome = (dir, depth = 0) => {
+            if (depth > 6) return null;
+            const entries = fs.readdirSync(dir, { withFileTypes: true });
+            for (const entry of entries) {
+              const fullPath = path.join(dir, entry.name);
+              if (entry.isDirectory()) {
+                const sub = findChrome(fullPath, depth + 1);
+                if (sub) return sub;
+              } else if (
+                entry.name === 'chrome' ||
+                entry.name === 'chrome.exe' ||
+                entry.name === 'chromium'
+              ) {
+                return fullPath;
+              }
+            }
+            return null;
+          };
+          const found = findChrome(cDir);
+          if (found) {
+            options.executablePath = found;
+            break;
+          }
+        } catch (e) {}
+      }
     }
   }
 

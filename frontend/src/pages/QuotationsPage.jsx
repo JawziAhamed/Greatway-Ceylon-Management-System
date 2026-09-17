@@ -99,16 +99,12 @@ export default function QuotationsPage() {
         docType: 'quotation',
         docId: item._id,
         docNumber: item.quotationNumber,
-        onFallback: () => {
-          // Open preview modal so user can view and print / Save as PDF immediately
-          setActiveQuotation(item);
-          setPreviewOpen(true);
-        },
+        documentData: item,
+        settings,
       });
     } catch (err) {
-      console.warn('PDF download fallback to modal:', err);
-      setActiveQuotation(item);
-      setPreviewOpen(true);
+      console.error('PDF download error:', err);
+      alert('Failed to download PDF: ' + err.message);
     } finally {
       setDownloadingId(null);
     }

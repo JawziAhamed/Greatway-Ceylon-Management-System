@@ -64,17 +64,18 @@ export default function DocumentPreviewModal({
   const handleDownloadPdf = async () => {
     try {
       setDownloading(true);
+      const docElement = document.getElementById('printable-document-content');
       await downloadDocumentPdf({
         docType: isQuotation ? 'quotation' : 'invoice',
         docId,
         docNumber,
-        onFallback: () => {
-          handlePrint();
-        },
+        documentData: currentDoc,
+        settings,
+        element: docElement,
       });
     } catch (err) {
-      console.warn('PDF download fallback to print:', err);
-      handlePrint();
+      console.error('PDF download error:', err);
+      alert('Failed to download PDF: ' + err.message);
     } finally {
       setDownloading(false);
     }
@@ -213,8 +214,11 @@ export default function DocumentPreviewModal({
         </div>
       </div>
 
-      {/* Render Document Document Frame */}
-      <div className="w-full max-w-[840px] pb-10 print:max-w-none print:pb-0 print-document-container">
+      {/* Render Document Frame */}
+      <div
+        id="printable-document-content"
+        className="w-full max-w-[840px] pb-10 print:max-w-none print:pb-0 print-document-container"
+      >
         {isQuotation ? (
           <QuotationDocument quotation={currentDoc} settings={settings} />
         ) : (

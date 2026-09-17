@@ -8,11 +8,17 @@
   }
 }
 
+/* Global Page Margins - Suppresses browser default headers (date/time/title) and footers (URL/page numbers) */
+@page {
+  size: A4 portrait;
+  margin: 0 !important;
+}
+
 /* Print Specific Styles for A4 Portrait */
 @media print {
   @page {
     size: A4 portrait;
-    margin: 0 !important; /* Suppresses browser default headers (date/time/title) and footers (URL/page numbers) */
+    margin: 0 !important;
   }
 
   html, body {

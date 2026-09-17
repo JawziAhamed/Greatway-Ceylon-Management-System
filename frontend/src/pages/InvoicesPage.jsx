@@ -85,16 +85,12 @@ export default function InvoicesPage() {
         docType: 'invoice',
         docId: item._id,
         docNumber: item.invoiceNumber,
-        onFallback: () => {
-          // Open preview modal so user can view and print / Save as PDF immediately
-          setActiveInvoice(item);
-          setPreviewOpen(true);
-        },
+        documentData: item,
+        settings,
       });
     } catch (err) {
-      console.warn('PDF download fallback to modal:', err);
-      setActiveInvoice(item);
-      setPreviewOpen(true);
+      console.error('PDF download error:', err);
+      alert('Failed to download PDF: ' + err.message);
     } finally {
       setDownloadingId(null);
     }

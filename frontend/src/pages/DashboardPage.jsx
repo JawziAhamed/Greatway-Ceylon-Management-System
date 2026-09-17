@@ -126,13 +126,11 @@ export default function DashboardPage() {
         docType: isQuotation ? 'quotation' : 'invoice',
         docId: doc._id,
         docNumber: doc.docNumber,
-        onFallback: () => {
-          handleOpenPreview(doc);
-        },
+        settings,
       });
     } catch (err) {
-      console.warn('PDF download fallback to modal:', err);
-      handleOpenPreview(doc);
+      console.error('PDF download error:', err);
+      alert('Failed to download PDF: ' + err.message);
     } finally {
       setDownloadingId(null);
     }
