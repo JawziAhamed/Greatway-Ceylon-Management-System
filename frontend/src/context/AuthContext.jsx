@@ -3,11 +3,31 @@ import axiosClient from '../api/axiosClient';
 
 const AuthContext = createContext(null);
 
-const IDLE_LOCK_TIME = 60 * 1000; // 1 minute of inactivity
+export const LOCK_TIMEOUT_OPTIONS = [
+  { value: 30 * 1000, label: '30 Seconds (Testing)' },
+  { value: 60 * 1000, label: '1 Minute (Default)' },
+  { value: 2 * 60 * 1000, label: '2 Minutes' },
+  { value: 5 * 60 * 1000, label: '5 Minutes' },
+  { value: 10 * 60 * 1000, label: '10 Minutes' },
+  { value: 15 * 60 * 1000, label: '15 Minutes' },
+  { value: 30 * 60 * 1000, label: '30 Minutes' },
+  { value: 0, label: 'Disabled (Never Auto-Lock)' },
+];
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [lockTimeout, setLockTimeoutState] = useState(() => {
+    const saved = localStorage.getItem('gw_lock_timeout');
+    return saved !== null ? Number(saved) : 60 * 1000;
+  });
+
+  const setLockTimeout = (val) => {
+    const num = Number(val);
+    setLockTimeoutState(num);
+    localStorage.setItem('gw_lock_timeout', String(num));
+  };
+
   const [isLocked, setIsLocked] = useState(() => {
     return sessionStorage.getItem('gw_locked') === 'true';
   });
@@ -50,9 +70,9 @@ export const AuthProvider = ({ children }) => {
     throw new Error('Invalid password');
   };
 
-  // Cursor & user activity tracker for 1-minute idle lock
+  // Cursor & user activity tracker for configurable idle lock
   useEffect(() => {
-    if (!user || isLocked) {
+    if (!user || isLocked || lockTimeout === 0) {
       if (timerRef.current) clearTimeout(timerRef.current);
       return;
     }
@@ -61,20 +81,20 @@ export const AuthProvider = ({ children }) => {
       if (timerRef.current) clearTimeout(timerRef.current);
       timerRef.current = setTimeout(() => {
         lockSession();
-      }, IDLE_LOCK_TIME);
+      }, lockTimeout);
     };
 
     const events = ['mousemove', 'mousedown', 'keydown', 'touchstart', 'scroll'];
     events.forEach((evt) => window.addEventListener(evt, resetTimer, { passive: true }));
 
-    // Start 1-minute timer on mount
+    // Start timer on mount / settings change
     resetTimer();
 
     return () => {
       if (timerRef.current) clearTimeout(timerRef.current);
       events.forEach((evt) => window.removeEventListener(evt, resetTimer));
     };
-  }, [user, isLocked, lockSession]);
+  }, [user, isLocked, lockTimeout, lockSession]);
 
   const login = async (email, password) => {
     const res = await axiosClient.post('/auth/login', { email, password });
@@ -107,6 +127,9 @@ export const AuthProvider = ({ children }) => {
         isLocked,
         lockSession,
         unlockSession,
+        lockTimeout,
+        setLockTimeout,
+        lockTimeoutOptions: LOCK_TIMEOUT_OPTIONS,
         isAdmin: user?.role === 'admin',
       }}
     >

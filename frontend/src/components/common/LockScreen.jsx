@@ -4,11 +4,14 @@ import { useAuth } from '../../context/AuthContext';
 import logoImg from '../../assets/logo.png';
 
 export default function LockScreen() {
-  const { user, unlockSession, logout } = useAuth();
+  const { user, unlockSession, logout, lockTimeout, lockTimeoutOptions } = useAuth();
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+
+  const currentOption = lockTimeoutOptions?.find((o) => o.value === lockTimeout);
+  const lockBadgeText = currentOption?.value > 0 ? `Session Locked (${currentOption.label.split(' ')[0]} Idle)` : 'Session Locked';
 
   const handleUnlock = async (e) => {
     e.preventDefault();
@@ -38,7 +41,7 @@ export default function LockScreen() {
           />
           <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-amber-100 text-amber-900 border border-amber-300 rounded-full text-xs font-semibold">
             <Lock className="w-3.5 h-3.5 text-amber-700" />
-            <span>Session Locked (1 min Idle)</span>
+            <span>{lockBadgeText}</span>
           </div>
           <p className="text-xs text-gray-500 mt-2">
             No cursor movement detected. Please enter your password to resume work.

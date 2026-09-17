@@ -13,6 +13,7 @@ import {
   Loader2,
   Upload,
   CheckCircle,
+  Lock,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import axiosClient, { resolveMediaUrl } from '../api/axiosClient';
@@ -20,7 +21,7 @@ import logoImg from '../assets/logo.png';
 
 export default function SettingsPage() {
   const { settings, setSettings } = useOutletContext();
-  const { isAdmin } = useAuth();
+  const { isAdmin, lockTimeout, setLockTimeout, lockTimeoutOptions, lockSession } = useAuth();
 
   const [activeTab, setActiveTab] = useState('company');
   const [saving, setSaving] = useState(false);
@@ -186,6 +187,7 @@ export default function SettingsPage() {
     { id: 'bank', label: 'Bank & Payments', icon: CreditCard },
     { id: 'numbering', label: 'Doc Numbering', icon: Hash },
     { id: 'terms', label: 'Default Terms', icon: FileText },
+    { id: 'security', label: 'Security & Auto-Lock', icon: Lock },
     { id: 'users', label: 'Users & Roles', icon: Users },
   ];
 
@@ -200,7 +202,7 @@ export default function SettingsPage() {
           </p>
         </div>
 
-        {activeTab !== 'users' && (
+        {activeTab !== 'users' && activeTab !== 'security' && (
           <button
             onClick={handleSaveSettings}
             disabled={saving}
@@ -670,7 +672,64 @@ export default function SettingsPage() {
           </div>
         )}
 
-        {/* Tab 6: Users & Staff Management */}
+        {/* Tab 6: Security & Auto-Lock Session Times */}
+        {activeTab === 'security' && (
+          <div className="p-6 space-y-6 text-xs max-w-2xl">
+            <div className="space-y-1">
+              <h2 className="text-sm font-bold text-gray-900 flex items-center gap-2">
+                <Lock className="w-4 h-4 text-brand-800" />
+                <span>Session Security &amp; Inactivity Auto-Lock</span>
+              </h2>
+              <p className="text-gray-500">
+                Configure how long the system waits with no cursor movement or key interaction before automatically engaging the frosted glass lock screen.
+              </p>
+            </div>
+
+            <div className="p-5 bg-gray-50 rounded-2xl border border-gray-200 space-y-4">
+              <div>
+                <label className="block font-semibold text-gray-800 mb-1.5">
+                  Inactivity Auto-Lock Timeout
+                </label>
+                <select
+                  value={lockTimeout}
+                  onChange={(e) => {
+                    setLockTimeout(Number(e.target.value));
+                    setSuccessMsg('Auto-lock timeout updated successfully!');
+                    setTimeout(() => setSuccessMsg(''), 3000);
+                  }}
+                  className="w-full sm:w-80 px-3 py-2 border border-gray-300 rounded-xl bg-white font-medium text-xs focus:ring-2 focus:ring-brand-700"
+                >
+                  {lockTimeoutOptions?.map((opt) => (
+                    <option key={opt.value} value={opt.value}>
+                      {opt.label}
+                    </option>
+                  ))}
+                </select>
+                <p className="text-[11px] text-gray-500 mt-2">
+                  {lockTimeout === 0
+                    ? '⚠️ Auto-lock is currently disabled. You can still lock the screen manually from the sidebar.'
+                    : `The screen will automatically lock when inactive for ${lockTimeoutOptions?.find((o) => o.value === lockTimeout)?.label || 'the configured duration'}.`}
+                </p>
+              </div>
+
+              <div className="border-t border-gray-200 pt-3 flex flex-wrap items-center gap-3">
+                <button
+                  type="button"
+                  onClick={lockSession}
+                  className="px-4 py-2 bg-brand-800 hover:bg-brand-900 text-white rounded-xl font-semibold shadow-sm transition flex items-center gap-1.5 cursor-pointer"
+                >
+                  <Lock className="w-3.5 h-3.5 text-accent-gold" />
+                  <span>Lock Session Now (Test)</span>
+                </button>
+                <span className="text-gray-500 text-[11px]">
+                  Preserves all unsaved quotation/invoice edits in browser memory.
+                </span>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Tab 7: Users & Staff Management */}
         {activeTab === 'users' && (
           <div className="p-6 space-y-6 text-xs">
             {/* Create Staff Form */}
