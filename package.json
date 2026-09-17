@@ -1,0 +1,23 @@
+{
+  "name": "greatway-ceylon-sales-documents",
+  "version": "1.0.0",
+  "description": "Greatway Ceylon (Pvt) Ltd - Invoice & Quotation Management System (MERN Stack)",
+  "scripts": {
+    "start": "node backend/server.js",
+    "backend": "cd backend && node server.js",
+    "backend:dev": "cd backend && node --watch server.js",
+    "frontend": "cd frontend && npm run dev",
+    "seed": "cd backend && node utils/seedData.js",
+    "build": "cd frontend && npm install && npm run build",
+    "postinstall": "cd backend && npm install && cd ../frontend && npm install"
+  },
+  "keywords": [
+    "mern",
+    "quotation-system",
+    "performa-invoice",
+    "greatway-ceylon",
+    "pdf-generation"
+  ],
+  "author": "Greatway Ceylon (Pvt) Ltd",
+  "license": "ISC"
+}
