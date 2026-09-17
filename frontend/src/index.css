@@ -10,10 +10,17 @@
 
 /* Print Specific Styles for A4 Portrait */
 @media print {
-  body {
+  @page {
+    size: A4 portrait;
+    margin: 0 !important; /* Suppresses browser default headers (date/time/title) and footers (URL/page numbers) */
+  }
+
+  html, body {
     background: #ffffff !important;
     margin: 0 !important;
     padding: 0 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
   }
 
   .no-print {
@@ -28,13 +35,9 @@
     width: 100% !important;
     max-width: 100% !important;
     margin: 0 !important;
-    padding: 0 !important;
+    padding: 10mm 12mm !important;
     box-shadow: none !important;
     border: none !important;
-  }
-
-  @page {
-    size: A4 portrait;
-    margin: 10mm;
+    box-sizing: border-box !important;
   }
 }

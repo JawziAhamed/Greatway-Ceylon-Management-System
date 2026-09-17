@@ -387,7 +387,14 @@ export default function QuotationEditorPage() {
               Real-time prototype reproduction preview:
             </span>
             <button
-              onClick={() => window.print()}
+              onClick={() => {
+                const originalTitle = window.document.title;
+                window.document.title = quotationNumber || 'Quotation';
+                window.print();
+                setTimeout(() => {
+                  window.document.title = originalTitle;
+                }, 1500);
+              }}
               className="px-3 py-1.5 bg-gray-800 text-white rounded-lg text-xs font-medium hover:bg-gray-900"
             >
               Print Preview

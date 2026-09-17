@@ -78,11 +78,11 @@ const generateQuotationHTML = (quotation, settings, logoBase64) => {
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Quotation - ${quotation.quotationNumber}</title>
+  <title>${quotation.quotationNumber}</title>
   <style>
     @page {
       size: A4 portrait;
-      margin: 12mm 15mm 12mm 15mm;
+      margin: 0;
     }
     * {
       box-sizing: border-box;
@@ -91,9 +91,11 @@ const generateQuotationHTML = (quotation, settings, logoBase64) => {
     }
     body {
       margin: 0;
-      padding: 0;
+      padding: 12mm 15mm;
       background: #fff;
       font-size: 11px;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
     }
     .container {
       width: 100%;
@@ -443,11 +445,11 @@ const generateInvoiceHTML = (invoice, settings, logoBase64) => {
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Performa Invoice - ${invoice.invoiceNumber}</title>
+  <title>${invoice.invoiceNumber}</title>
   <style>
     @page {
       size: A4 portrait;
-      margin: 12mm 15mm 12mm 15mm;
+      margin: 0;
     }
     * {
       box-sizing: border-box;
@@ -456,9 +458,11 @@ const generateInvoiceHTML = (invoice, settings, logoBase64) => {
     }
     body {
       margin: 0;
-      padding: 0;
+      padding: 10mm 12mm;
       background: #fff;
       font-size: 11px;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
     }
     .document-frame {
       width: 100%;

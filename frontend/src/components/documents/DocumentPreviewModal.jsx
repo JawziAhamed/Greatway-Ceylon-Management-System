@@ -53,7 +53,12 @@ export default function DocumentPreviewModal({
   };
 
   const handlePrint = () => {
+    const originalTitle = window.document.title;
+    window.document.title = docNumber || (isQuotation ? 'Quotation' : 'Performa-Invoice');
     window.print();
+    setTimeout(() => {
+      window.document.title = originalTitle;
+    }, 1500);
   };
 
   const handleDownloadPdf = async () => {
@@ -64,13 +69,12 @@ export default function DocumentPreviewModal({
         docId,
         docNumber,
         onFallback: () => {
-          // Fallback to browser print/Save as PDF
-          window.print();
+          handlePrint();
         },
       });
     } catch (err) {
       console.warn('PDF download fallback to print:', err);
-      window.print();
+      handlePrint();
     } finally {
       setDownloading(false);
     }
@@ -210,7 +214,7 @@ export default function DocumentPreviewModal({
       </div>
 
       {/* Render Document Document Frame */}
-      <div className="w-full max-w-[840px] pb-10 print:max-w-none print:pb-0">
+      <div className="w-full max-w-[840px] pb-10 print:max-w-none print:pb-0 print-document-container">
         {isQuotation ? (
           <QuotationDocument quotation={currentDoc} settings={settings} />
         ) : (
