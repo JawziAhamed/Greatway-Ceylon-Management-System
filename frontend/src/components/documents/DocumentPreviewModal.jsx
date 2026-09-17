@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   X,
@@ -20,18 +20,19 @@ export default function DocumentPreviewModal({
   isOpen,
   onClose,
   docType, // 'Quotation' or 'Performa Invoice'
-  document,
+  document: docProp,
   settings,
   onRefresh,
 }) {
   const navigate = useNavigate();
-  const [currentDoc, setCurrentDoc] = useState(document);
+  const [currentDoc, setCurrentDoc] = useState(docProp);
   const [downloading, setDownloading] = useState(false);
   const [converting, setConverting] = useState(false);
+  const printContentRef = useRef(null);
 
   useEffect(() => {
-    setCurrentDoc(document);
-  }, [document]);
+    setCurrentDoc(docProp);
+  }, [docProp]);
 
   if (!isOpen || !currentDoc) return null;
 
@@ -64,7 +65,7 @@ export default function DocumentPreviewModal({
   const handleDownloadPdf = async () => {
     try {
       setDownloading(true);
-      const docElement = document.getElementById('printable-document-content');
+      const docElement = printContentRef.current || window.document.getElementById('printable-document-content');
       await downloadDocumentPdf({
         docType: isQuotation ? 'quotation' : 'invoice',
         docId,
@@ -216,6 +217,7 @@ export default function DocumentPreviewModal({
 
       {/* Render Document Frame */}
       <div
+        ref={printContentRef}
         id="printable-document-content"
         className="w-full max-w-[840px] pb-10 print:max-w-none print:pb-0 print-document-container"
       >
