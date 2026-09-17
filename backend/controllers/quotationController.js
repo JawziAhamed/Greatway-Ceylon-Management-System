@@ -502,6 +502,7 @@ const convertToInvoice = async (req, res) => {
       portOfLoading: settings?.invoiceSettings?.defaultPortOfLoading || 'COLOMBO PORT SRI LANKA',
       portOfDischarge: 'Salalah, Oman (CY)',
       containerSpecification: '1X40 REEFER',
+      incoterms: quotation.incoterms || 'CIF',
       items: invoiceItems,
       freightDescription: quotation.freightDescription || 'Free time at destination added cost for Freight',
       freightCharges: quotation.freightCost || 0,

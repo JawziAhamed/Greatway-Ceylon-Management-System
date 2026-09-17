@@ -2,6 +2,7 @@ import React from 'react';
 import logoImg from '../../assets/logo.png';
 import { formatCurrency, formatDate } from './QuotationDocument';
 import { resolveMediaUrl } from '../../api/axiosClient';
+import { formatIncotermDisplay, getIncotermCode } from '../../utils/incoterms';
 
 export default function PerformaInvoiceDocument({ invoice, settings = {} }) {
   if (!invoice) return null;
@@ -91,6 +92,10 @@ export default function PerformaInvoiceDocument({ invoice, settings = {} }) {
                 <span className="font-bold w-36">SHIPMENT REFERENCE:</span>
                 <span>: {invoice.shipmentReference}</span>
               </div>
+              <div className="flex">
+                <span className="font-bold w-36">INCOTERMS:</span>
+                <span className="font-bold">: {formatIncotermDisplay(invoice.incoterms, invoice.portOfDischarge, invoice.portOfLoading)}</span>
+              </div>
               {invoice.status && (
                 <div className="flex items-center">
                   <span className="font-bold w-36">STATUS:</span>
@@ -151,7 +156,7 @@ export default function PerformaInvoiceDocument({ invoice, settings = {} }) {
                 ({invoice.currency || 'USD'})
               </th>
               <th className="py-2 px-2 text-center w-28 font-bold leading-tight">
-                CIF VALUE
+                {getIncotermCode(invoice.incoterms)} VALUE
                 <br />
                 ({invoice.currency || 'USD'})
               </th>

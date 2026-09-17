@@ -72,6 +72,10 @@ const performaInvoiceSchema = new mongoose.Schema(
       type: String,
       default: '1X40 REEFER',
     },
+    incoterms: {
+      type: String,
+      default: 'CIF',
+    },
     items: [invoiceItemSchema],
     freightDescription: {
       type: String,

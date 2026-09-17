@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import PerformaInvoiceDocument from '../components/documents/PerformaInvoiceDocument';
 import { formatCurrency } from '../components/documents/QuotationDocument';
+import { INCOTERMS_OPTIONS, getIncotermCode } from '../utils/incoterms';
 import axiosClient from '../api/axiosClient';
 
 export default function InvoiceEditorPage() {
@@ -46,6 +47,7 @@ export default function InvoiceEditorPage() {
   const [portOfLoading, setPortOfLoading] = useState('COLOMBO PORT SRI LANKA');
   const [portOfDischarge, setPortOfDischarge] = useState('Salalah, Oman (CY)');
   const [containerSpecification, setContainerSpecification] = useState('1X40 REEFER');
+  const [incoterms, setIncoterms] = useState('CIF');
 
   // Items State
   const [items, setItems] = useState([
@@ -121,6 +123,7 @@ export default function InvoiceEditorPage() {
             setPortOfLoading(inv.portOfLoading || '');
             setPortOfDischarge(inv.portOfDischarge || '');
             setContainerSpecification(inv.containerSpecification || '');
+            setIncoterms(inv.incoterms || 'CIF');
             setItems(inv.items || []);
             setFreightDescription(inv.freightDescription || '');
             setFreightCharges(inv.freightCharges || 0);
@@ -282,6 +285,7 @@ export default function InvoiceEditorPage() {
         portOfLoading,
         portOfDischarge,
         containerSpecification,
+        incoterms: getIncotermCode(incoterms),
         items,
         freightDescription,
         freightCharges: Number(freightCharges) || 0,
@@ -328,6 +332,7 @@ export default function InvoiceEditorPage() {
     portOfLoading,
     portOfDischarge,
     containerSpecification,
+    incoterms,
     items,
     freightDescription,
     freightCharges: Number(freightCharges) || 0,
@@ -601,7 +606,24 @@ export default function InvoiceEditorPage() {
                   />
                 </div>
 
-                <div className="sm:col-span-2">
+                <div>
+                  <label className="block text-xs font-semibold text-gray-700 mb-1">
+                    Incoterms
+                  </label>
+                  <select
+                    value={getIncotermCode(incoterms)}
+                    onChange={(e) => setIncoterms(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-xl text-xs bg-white font-medium focus:ring-1 focus:ring-brand-700"
+                  >
+                    {INCOTERMS_OPTIONS.map((opt) => (
+                      <option key={opt.code} value={opt.code}>
+                        {opt.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
                   <label className="block text-xs font-semibold text-gray-700 mb-1">
                     Container Specification
                   </label>
@@ -621,7 +643,7 @@ export default function InvoiceEditorPage() {
               <div className="flex justify-between items-center border-b border-gray-100 pb-2.5">
                 <h2 className="text-sm font-bold text-gray-900 flex items-center gap-2">
                   <FileCheck className="w-4 h-4 text-brand-700" />
-                  <span>Items &amp; CIF Valuation</span>
+                  <span>Items &amp; {getIncotermCode(incoterms)} Valuation</span>
                 </h2>
                 <button
                   type="button"
@@ -725,7 +747,7 @@ export default function InvoiceEditorPage() {
                       </div>
 
                       <div className="sm:col-span-3 text-right flex flex-col justify-end">
-                        <div className="text-[10px] text-gray-500">CIF Value:</div>
+                        <div className="text-[10px] text-gray-500">{getIncotermCode(incoterms)} Value:</div>
                         <div className="text-sm font-bold text-gray-900">
                           $ {formatCurrency(item.cifValue)}
                         </div>
@@ -877,7 +899,7 @@ export default function InvoiceEditorPage() {
                   <span className="font-bold text-gray-900">{formatCurrency(totalPackages)}</span>
                 </div>
                 <div className="flex justify-between text-gray-600">
-                  <span>Items CIF Total:</span>
+                  <span>Items {getIncotermCode(incoterms)} Total:</span>
                   <span className="font-semibold text-gray-900">$ {formatCurrency(itemsSubtotal)}</span>
                 </div>
                 <div className="flex justify-between text-gray-600">

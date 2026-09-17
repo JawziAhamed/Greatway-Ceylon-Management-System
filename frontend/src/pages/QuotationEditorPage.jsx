@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import QuotationDocument, { formatCurrency } from '../components/documents/QuotationDocument';
 import DocumentPreviewModal from '../components/documents/DocumentPreviewModal';
+import { INCOTERMS_OPTIONS, getIncotermCode } from '../utils/incoterms';
 import axiosClient from '../api/axiosClient';
 
 export default function QuotationEditorPage() {
@@ -36,6 +37,7 @@ export default function QuotationEditorPage() {
   const [validUntil, setValidUntil] = useState('');
   const [customerId, setCustomerId] = useState('');
   const [currency, setCurrency] = useState('USD');
+  const [incoterms, setIncoterms] = useState('CIF');
   const [vesselDetails, setVesselDetails] = useState(
     'Line : MAERSK  Transit time : 05 DAYS DIRECT | FREE TIME AT DESTINATION : 7 DAYS'
   );
@@ -115,6 +117,7 @@ export default function QuotationEditorPage() {
             setTax(q.tax || 0);
             setPaymentTerms(q.paymentTerms || '');
             setDeliveryTerms(q.deliveryTerms || '');
+            setIncoterms(q.incoterms || 'CIF');
             setSpecificTerms(q.specificTerms || []);
           }
         } else {
@@ -122,6 +125,9 @@ export default function QuotationEditorPage() {
           const numRes = await axiosClient.get('/quotations/next-number');
           if (numRes.data.success) {
             setQuotationNumber(numRes.data.nextNumber);
+          }
+          if (settings?.quotationSettings?.defaultIncoterms) {
+            setIncoterms(settings.quotationSettings.defaultIncoterms);
           }
           if (settings?.quotationSettings?.defaultSpecificTerms) {
             setSpecificTerms(settings.quotationSettings.defaultSpecificTerms);
@@ -247,6 +253,7 @@ export default function QuotationEditorPage() {
         tax: Number(tax) || 0,
         paymentTerms,
         deliveryTerms,
+        incoterms: getIncotermCode(incoterms),
         specificTerms,
         status,
         notes,
@@ -281,6 +288,7 @@ export default function QuotationEditorPage() {
     validUntil,
     buyerSnapshot: selectedCustomerObj || { companyName: 'Select Customer' },
     currency,
+    incoterms,
     vesselDetails,
     departureDateText,
     items,
@@ -477,6 +485,23 @@ export default function QuotationEditorPage() {
                     <option value="GBP">GBP (£)</option>
                     <option value="AED">AED (AED)</option>
                     <option value="LKR">LKR (Rs)</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-gray-700 mb-1">
+                    Incoterms
+                  </label>
+                  <select
+                    value={getIncotermCode(incoterms)}
+                    onChange={(e) => setIncoterms(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-xl text-xs bg-white font-medium focus:ring-1 focus:ring-brand-700"
+                  >
+                    {INCOTERMS_OPTIONS.map((opt) => (
+                      <option key={opt.code} value={opt.code}>
+                        {opt.label}
+                      </option>
+                    ))}
                   </select>
                 </div>
 

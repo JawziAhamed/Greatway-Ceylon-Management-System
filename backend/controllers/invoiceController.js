@@ -130,6 +130,7 @@ const createInvoice = async (req, res) => {
       portOfLoading,
       portOfDischarge,
       containerSpecification,
+      incoterms,
       items = [],
       freightDescription,
       freightCharges = 0,
@@ -202,6 +203,7 @@ const createInvoice = async (req, res) => {
       portOfLoading: portOfLoading || 'COLOMBO PORT SRI LANKA',
       portOfDischarge: portOfDischarge || 'Salalah, Oman (CY)',
       containerSpecification: containerSpecification || '1X40 REEFER',
+      incoterms: incoterms || 'CIF',
       items: calculatedItems,
       freightDescription: freightDescription || 'Free time at destination added cost for Freight',
       freightCharges: freight,
@@ -247,6 +249,7 @@ const updateInvoice = async (req, res) => {
       portOfLoading,
       portOfDischarge,
       containerSpecification,
+      incoterms,
       items,
       freightDescription,
       freightCharges,
@@ -326,6 +329,7 @@ const updateInvoice = async (req, res) => {
     existing.portOfDischarge = portOfDischarge !== undefined ? portOfDischarge : existing.portOfDischarge;
     existing.containerSpecification =
       containerSpecification !== undefined ? containerSpecification : existing.containerSpecification;
+    existing.incoterms = incoterms !== undefined ? incoterms : (existing.incoterms || 'CIF');
     existing.items = calculatedItems;
     existing.freightDescription = freightDescription || existing.freightDescription;
     existing.freightCharges = freight;

@@ -1,6 +1,7 @@
 import React from 'react';
 import logoImg from '../../assets/logo.png';
 import { resolveMediaUrl } from '../../api/axiosClient';
+import { formatIncotermDisplay } from '../../utils/incoterms';
 
 export const formatCurrency = (val) => {
   return Number(val || 0).toLocaleString('en-US', {
@@ -124,6 +125,10 @@ export default function QuotationDocument({ quotation, settings = {} }) {
               <tr>
                 <td className="font-bold text-gray-700 pr-3 py-0.5">CURRENCY</td>
                 <td className="py-0.5">: {quotation.currency || 'USD'}</td>
+              </tr>
+              <tr>
+                <td className="font-bold text-gray-700 pr-3 py-0.5">INCOTERMS</td>
+                <td className="py-0.5">: <span className="font-bold">{formatIncotermDisplay(quotation.incoterms, buyer.country || 'Destination Port')}</span></td>
               </tr>
               {quotation.status && (
                 <tr>

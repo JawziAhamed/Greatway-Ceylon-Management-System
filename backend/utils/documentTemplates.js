@@ -1,5 +1,6 @@
 const fs = require('fs');
 const path = require('path');
+const { formatIncotermDisplay, getIncotermCode } = require('./incoterms');
 
 // Helper to format currency numbers
 const formatAmount = (num) => {
@@ -298,6 +299,10 @@ const generateQuotationHTML = (quotation, settings, logoBase64) => {
           <tr>
             <td class="meta-label">CURRENCY</td>
             <td>: ${quotation.currency || 'USD'}</td>
+          </tr>
+          <tr>
+            <td class="meta-label">INCOTERMS</td>
+            <td style="font-weight: bold;">: ${formatIncotermDisplay(quotation.incoterms, buyer.country || 'Destination Port')}</td>
           </tr>
           ${quotation.status ? `<tr><td class="meta-label">STATUS</td><td style="font-weight: bold; color: #14663e;">: ${quotation.status.toUpperCase()}</td></tr>` : ''}
         </table>
@@ -652,6 +657,10 @@ const generateInvoiceHTML = (invoice, settings, logoBase64) => {
               <td style="border: none; padding: 2px 0; font-weight: bold;">SHIPMENT REFERENCE:</td>
               <td style="border: none; padding: 2px 0;">${invoice.shipmentReference || ''}</td>
             </tr>
+            <tr>
+              <td style="border: none; padding: 2px 0; font-weight: bold;">INCOTERMS:</td>
+              <td style="border: none; padding: 2px 0; font-weight: bold;">${formatIncotermDisplay(invoice.incoterms, invoice.portOfDischarge, invoice.portOfLoading)}</td>
+            </tr>
             ${invoice.status ? `<tr><td style="border: none; padding: 2px 0; font-weight: bold;">STATUS:</td><td style="border: none; padding: 2px 0; font-weight: bold; color: #237837;">${invoice.status.toUpperCase()}</td></tr>` : ''}
           </table>
         </td>
@@ -681,7 +690,7 @@ const generateInvoiceHTML = (invoice, settings, logoBase64) => {
           <th style="width: 100px;">PER BOX/<br>WEIGHT (KG)</th>
           <th style="width: 100px;">RATE PER NUT<br>KG (${invoice.currency})</th>
           <th style="width: 85px;">BOX RATE<br>(${invoice.currency})</th>
-          <th style="width: 100px;">CIF VALUE<br>(${invoice.currency})</th>
+          <th style="width: 100px;">${getIncotermCode(invoice.incoterms)} VALUE<br>(${invoice.currency})</th>
         </tr>
       </thead>
       <tbody>
