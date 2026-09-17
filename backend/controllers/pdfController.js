@@ -27,6 +27,40 @@ const getLogoBase64 = (settings) => {
   return null;
 };
 
+const getLaunchOptions = () => {
+  const options = {
+    headless: 'new',
+    args: [
+      '--no-sandbox',
+      '--disable-setuid-sandbox',
+      '--disable-dev-shm-usage',
+      '--disable-gpu',
+      '--no-zygote',
+      '--single-process',
+    ],
+  };
+
+  if (process.env.PUPPETEER_EXECUTABLE_PATH) {
+    options.executablePath = process.env.PUPPETEER_EXECUTABLE_PATH;
+    return options;
+  }
+
+  const commonLinuxPaths = [
+    '/usr/bin/google-chrome-stable',
+    '/usr/bin/google-chrome',
+    '/usr/bin/chromium',
+    '/usr/bin/chromium-browser',
+  ];
+  for (const p of commonLinuxPaths) {
+    if (fs.existsSync(p)) {
+      options.executablePath = p;
+      break;
+    }
+  }
+
+  return options;
+};
+
 // @desc    Generate and stream Quotation PDF
 // @route   GET /api/quotations/:id/pdf
 // @access  Private
@@ -44,43 +78,81 @@ const generateQuotationPdf = async (req, res) => {
     const logoBase64 = getLogoBase64(settings);
     const html = generateQuotationHTML(quotation, settings, logoBase64);
 
-    browser = await puppeteer.launch({
-      headless: 'new',
-      args: [
-        '--no-sandbox',
-        '--disable-setuid-sandbox',
-        '--disable-dev-shm-usage',
-        '--disable-gpu',
-        '--no-zygote',
-      ],
-    });
+    try {
+      browser = await puppeteer.launch(getLaunchOptions());
+      const page = await browser.newPage();
+      await page.setContent(html, { waitUntil: 'networkidle0' });
 
-    const page = await browser.newPage();
-    await page.setContent(html, { waitUntil: 'networkidle0' });
+      const pdfBuffer = await page.pdf({
+        format: 'A4',
+        printBackground: true,
+        margin: {
+          top: '10mm',
+          right: '12mm',
+          bottom: '10mm',
+          left: '12mm',
+        },
+      });
 
-    const pdfBuffer = await page.pdf({
-      format: 'A4',
-      printBackground: true,
-      margin: {
-        top: '10mm',
-        right: '12mm',
-        bottom: '10mm',
-        left: '12mm',
-      },
-    });
+      await browser.close();
+      browser = null;
 
-    await browser.close();
-    browser = null;
-
-    const filename = `${quotation.quotationNumber}.pdf`;
-    res.setHeader('Content-Type', 'application/pdf');
-    res.setHeader('Content-Disposition', `inline; filename="${filename}"`);
-    res.setHeader('Content-Length', pdfBuffer.length);
-    res.end(pdfBuffer);
+      const safeNumber = (quotation.quotationNumber || 'quotation').replace(/[/\\?%*:|"<>]/g, '-');
+      const filename = `${safeNumber}.pdf`;
+      const isDownload = req.query.download === '1' || req.query.download === 'true';
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', `${isDownload ? 'attachment' : 'inline'}; filename="${filename}"`);
+      res.setHeader('Content-Length', pdfBuffer.length);
+      return res.end(pdfBuffer);
+    } catch (launchErr) {
+      if (browser) await browser.close();
+      console.warn('Puppeteer browser launch failed, checking fallback:', launchErr.message);
+      // If client requests HTML fallback or browser navigation
+      if (req.query.fallback === 'html' || req.headers.accept?.includes('text/html')) {
+        const autoPrintHtml = html.replace(
+          '</body>',
+          `<script>window.addEventListener('DOMContentLoaded', () => { setTimeout(() => { window.print(); }, 400); });</script></body>`
+        );
+        res.setHeader('Content-Type', 'text/html');
+        return res.send(autoPrintHtml);
+      }
+      throw launchErr;
+    }
   } catch (error) {
     if (browser) await browser.close();
     console.error('PDF Generation Error (Quotation):', error);
-    res.status(500).json({ success: false, message: 'Failed to generate PDF: ' + error.message });
+    res.status(500).json({
+      success: false,
+      message: 'Failed to generate PDF: ' + error.message,
+      canPrintHtml: true,
+    });
+  }
+};
+
+// @desc    Generate standalone printable Quotation HTML
+// @route   GET /api/quotations/:id/html
+// @access  Private
+const generateQuotationHtml = async (req, res) => {
+  try {
+    const quotation = await Quotation.findById(req.params.id).populate('customer');
+    if (!quotation) return res.status(404).send('Quotation not found');
+
+    let settings = await CompanySettings.findOne();
+    if (!settings) settings = await CompanySettings.create({});
+
+    const logoBase64 = getLogoBase64(settings);
+    let html = generateQuotationHTML(quotation, settings, logoBase64);
+    const autoPrint = req.query.print !== '0';
+    if (autoPrint) {
+      html = html.replace(
+        '</body>',
+        `<script>window.addEventListener('DOMContentLoaded', () => { setTimeout(() => { window.print(); }, 400); });</script></body>`
+      );
+    }
+    res.setHeader('Content-Type', 'text/html');
+    res.send(html);
+  } catch (err) {
+    res.status(500).send('Error rendering Quotation: ' + err.message);
   }
 };
 
@@ -101,47 +173,88 @@ const generateInvoicePdf = async (req, res) => {
     const logoBase64 = getLogoBase64(settings);
     const html = generateInvoiceHTML(invoice, settings, logoBase64);
 
-    browser = await puppeteer.launch({
-      headless: 'new',
-      args: [
-        '--no-sandbox',
-        '--disable-setuid-sandbox',
-        '--disable-dev-shm-usage',
-        '--disable-gpu',
-        '--no-zygote',
-      ],
-    });
+    try {
+      browser = await puppeteer.launch(getLaunchOptions());
+      const page = await browser.newPage();
+      await page.setContent(html, { waitUntil: 'networkidle0' });
 
-    const page = await browser.newPage();
-    await page.setContent(html, { waitUntil: 'networkidle0' });
+      const pdfBuffer = await page.pdf({
+        format: 'A4',
+        printBackground: true,
+        margin: {
+          top: '8mm',
+          right: '10mm',
+          bottom: '8mm',
+          left: '10mm',
+        },
+      });
 
-    const pdfBuffer = await page.pdf({
-      format: 'A4',
-      printBackground: true,
-      margin: {
-        top: '8mm',
-        right: '10mm',
-        bottom: '8mm',
-        left: '10mm',
-      },
-    });
+      await browser.close();
+      browser = null;
 
-    await browser.close();
-    browser = null;
-
-    const filename = `${invoice.invoiceNumber}.pdf`;
-    res.setHeader('Content-Type', 'application/pdf');
-    res.setHeader('Content-Disposition', `inline; filename="${filename}"`);
-    res.setHeader('Content-Length', pdfBuffer.length);
-    res.end(pdfBuffer);
+      const safeNumber = (invoice.invoiceNumber || 'invoice').replace(/[/\\?%*:|"<>]/g, '-');
+      const filename = `${safeNumber}.pdf`;
+      const isDownload = req.query.download === '1' || req.query.download === 'true';
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', `${isDownload ? 'attachment' : 'inline'}; filename="${filename}"`);
+      res.setHeader('Content-Length', pdfBuffer.length);
+      return res.end(pdfBuffer);
+    } catch (launchErr) {
+      if (browser) await browser.close();
+      console.warn('Puppeteer browser launch failed, checking fallback:', launchErr.message);
+      // If client requests HTML fallback or browser navigation
+      if (req.query.fallback === 'html' || req.headers.accept?.includes('text/html')) {
+        const autoPrintHtml = html.replace(
+          '</body>',
+          `<script>window.addEventListener('DOMContentLoaded', () => { setTimeout(() => { window.print(); }, 400); });</script></body>`
+        );
+        res.setHeader('Content-Type', 'text/html');
+        return res.send(autoPrintHtml);
+      }
+      throw launchErr;
+    }
   } catch (error) {
     if (browser) await browser.close();
     console.error('PDF Generation Error (Invoice):', error);
-    res.status(500).json({ success: false, message: 'Failed to generate PDF: ' + error.message });
+    res.status(500).json({
+      success: false,
+      message: 'Failed to generate PDF: ' + error.message,
+      canPrintHtml: true,
+    });
+  }
+};
+
+// @desc    Generate standalone printable Performa Invoice HTML
+// @route   GET /api/invoices/:id/html
+// @access  Private
+const generateInvoiceHtml = async (req, res) => {
+  try {
+    const invoice = await PerformaInvoice.findById(req.params.id).populate('customer');
+    if (!invoice) return res.status(404).send('Performa Invoice not found');
+
+    let settings = await CompanySettings.findOne();
+    if (!settings) settings = await CompanySettings.create({});
+
+    const logoBase64 = getLogoBase64(settings);
+    let html = generateInvoiceHTML(invoice, settings, logoBase64);
+    const autoPrint = req.query.print !== '0';
+    if (autoPrint) {
+      html = html.replace(
+        '</body>',
+        `<script>window.addEventListener('DOMContentLoaded', () => { setTimeout(() => { window.print(); }, 400); });</script></body>`
+      );
+    }
+    res.setHeader('Content-Type', 'text/html');
+    res.send(html);
+  } catch (err) {
+    res.status(500).send('Error rendering Performa Invoice: ' + err.message);
   }
 };
 
 module.exports = {
   generateQuotationPdf,
+  generateQuotationHtml,
   generateInvoicePdf,
+  generateInvoiceHtml,
 };
+

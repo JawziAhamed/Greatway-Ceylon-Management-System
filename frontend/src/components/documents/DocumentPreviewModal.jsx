@@ -14,6 +14,7 @@ import QuotationDocument from './QuotationDocument';
 import PerformaInvoiceDocument from './PerformaInvoiceDocument';
 import StatusBadge from '../common/StatusBadge';
 import axiosClient from '../../api/axiosClient';
+import { downloadDocumentPdf } from '../../utils/downloadPdf';
 
 export default function DocumentPreviewModal({
   isOpen,
@@ -58,26 +59,18 @@ export default function DocumentPreviewModal({
   const handleDownloadPdf = async () => {
     try {
       setDownloading(true);
-      const endpoint = isQuotation
-        ? `/quotations/${docId}/pdf`
-        : `/invoices/${docId}/pdf`;
-
-      const response = await axiosClient.get(endpoint, {
-        responseType: 'blob',
+      await downloadDocumentPdf({
+        docType: isQuotation ? 'quotation' : 'invoice',
+        docId,
+        docNumber,
+        onFallback: () => {
+          // Fallback to browser print/Save as PDF
+          window.print();
+        },
       });
-
-      const blob = new Blob([response.data], { type: 'application/pdf' });
-      const url = window.URL.createObjectURL(blob);
-      const link = window.document.createElement('a');
-      link.href = url;
-      link.download = `${docNumber}.pdf`;
-      window.document.body.appendChild(link);
-      link.click();
-      window.URL.revokeObjectURL(url);
-      link.remove();
     } catch (err) {
-      console.error('Download failed:', err);
-      alert('Failed to download PDF. Please try again.');
+      console.warn('PDF download fallback to print:', err);
+      window.print();
     } finally {
       setDownloading(false);
     }

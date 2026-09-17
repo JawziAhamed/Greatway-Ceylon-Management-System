@@ -11,11 +11,13 @@ import {
   Trash2,
   FileCheck2,
   ExternalLink,
+  Loader2,
 } from 'lucide-react';
 import StatusBadge from '../components/common/StatusBadge';
 import DocumentPreviewModal from '../components/documents/DocumentPreviewModal';
 import { formatCurrency, formatDate } from '../components/documents/QuotationDocument';
 import axiosClient from '../api/axiosClient';
+import { downloadDocumentPdf } from '../utils/downloadPdf';
 
 export default function InvoicesPage() {
   const navigate = useNavigate();
@@ -74,22 +76,27 @@ export default function InvoicesPage() {
     }
   };
 
+  const [downloadingId, setDownloadingId] = useState(null);
+
   const handleDownloadPdf = async (item) => {
     try {
-      const res = await axiosClient.get(`/invoices/${item._id}/pdf`, {
-        responseType: 'blob',
+      setDownloadingId(item._id);
+      await downloadDocumentPdf({
+        docType: 'invoice',
+        docId: item._id,
+        docNumber: item.invoiceNumber,
+        onFallback: () => {
+          // Open preview modal so user can view and print / Save as PDF immediately
+          setActiveInvoice(item);
+          setPreviewOpen(true);
+        },
       });
-      const blob = new Blob([res.data], { type: 'application/pdf' });
-      const url = window.URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `${item.invoiceNumber}.pdf`;
-      document.body.appendChild(link);
-      link.click();
-      window.URL.revokeObjectURL(url);
-      link.remove();
     } catch (err) {
-      alert('Failed to download PDF: ' + err.message);
+      console.warn('PDF download fallback to modal:', err);
+      setActiveInvoice(item);
+      setPreviewOpen(true);
+    } finally {
+      setDownloadingId(null);
     }
   };
 
@@ -274,10 +281,15 @@ export default function InvoicesPage() {
 
                         <button
                           onClick={() => handleDownloadPdf(inv)}
+                          disabled={downloadingId === inv._id}
                           title="Download PDF"
-                          className="p-1.5 hover:text-brand-800 hover:bg-brand-50 rounded transition"
+                          className="p-1.5 hover:text-brand-800 hover:bg-brand-50 rounded transition disabled:opacity-50"
                         >
-                          <Download className="w-4 h-4" />
+                          {downloadingId === inv._id ? (
+                            <Loader2 className="w-4 h-4 animate-spin text-brand-800" />
+                          ) : (
+                            <Download className="w-4 h-4" />
+                          )}
                         </button>
 
                         <button

@@ -10,7 +10,7 @@ const {
   duplicateInvoice,
   deleteInvoice,
 } = require('../controllers/invoiceController');
-const { generateInvoicePdf } = require('../controllers/pdfController');
+const { generateInvoicePdf, generateInvoiceHtml } = require('../controllers/pdfController');
 const { protect, adminOnly } = require('../middleware/authMiddleware');
 
 router.use(protect);
@@ -18,6 +18,7 @@ router.use(protect);
 router.get('/next-number', getNextNumber);
 router.route('/').get(getInvoices).post(createInvoice);
 router.get('/:id/pdf', generateInvoicePdf);
+router.get('/:id/html', generateInvoiceHtml);
 router.post('/:id/duplicate', duplicateInvoice);
 router.patch('/:id/status', updateInvoiceStatus);
 router

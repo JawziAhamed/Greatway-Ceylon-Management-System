@@ -17,12 +17,14 @@ import {
   Search,
   ArrowRightCircle,
   Filter,
+  Loader2,
 } from 'lucide-react';
 import StatCard from '../components/common/StatCard';
 import StatusBadge from '../components/common/StatusBadge';
 import DocumentPreviewModal from '../components/documents/DocumentPreviewModal';
 import { formatCurrency, formatDate } from '../components/documents/QuotationDocument';
 import axiosClient from '../api/axiosClient';
+import { downloadDocumentPdf } from '../utils/downloadPdf';
 
 export default function DashboardPage() {
   const navigate = useNavigate();
@@ -114,24 +116,25 @@ export default function DashboardPage() {
     }
   };
 
+  const [downloadingId, setDownloadingId] = useState(null);
+
   const handleDownloadPdf = async (doc) => {
     try {
+      setDownloadingId(doc._id);
       const isQuotation = doc.docType === 'Quotation';
-      const endpoint = isQuotation
-        ? `/quotations/${doc._id}/pdf`
-        : `/invoices/${doc._id}/pdf`;
-      const res = await axiosClient.get(endpoint, { responseType: 'blob' });
-      const blob = new Blob([res.data], { type: 'application/pdf' });
-      const url = window.URL.createObjectURL(blob);
-      const link = window.document.createElement('a');
-      link.href = url;
-      link.download = `${doc.docNumber}.pdf`;
-      window.document.body.appendChild(link);
-      link.click();
-      window.URL.revokeObjectURL(url);
-      link.remove();
+      await downloadDocumentPdf({
+        docType: isQuotation ? 'quotation' : 'invoice',
+        docId: doc._id,
+        docNumber: doc.docNumber,
+        onFallback: () => {
+          handleOpenPreview(doc);
+        },
+      });
     } catch (err) {
-      alert('Failed to download PDF: ' + err.message);
+      console.warn('PDF download fallback to modal:', err);
+      handleOpenPreview(doc);
+    } finally {
+      setDownloadingId(null);
     }
   };
 
@@ -359,10 +362,15 @@ export default function DashboardPage() {
 
                           <button
                             onClick={() => handleDownloadPdf(doc)}
+                            disabled={downloadingId === doc._id}
                             title="Download PDF"
-                            className="p-1.5 hover:text-brand-800 hover:bg-brand-50 rounded transition"
+                            className="p-1.5 hover:text-brand-800 hover:bg-brand-50 rounded transition disabled:opacity-50"
                           >
-                            <Download className="w-4 h-4" />
+                            {downloadingId === doc._id ? (
+                              <Loader2 className="w-4 h-4 animate-spin text-brand-800" />
+                            ) : (
+                              <Download className="w-4 h-4" />
+                            )}
                           </button>
 
                           <button
