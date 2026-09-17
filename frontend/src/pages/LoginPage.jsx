@@ -103,13 +103,6 @@ export default function LoginPage() {
               <span>Sign In</span>
             )}
           </button>
-
-          {/* Quick Demo Credentials Help */}
-          <div className="pt-4 border-t border-gray-100 text-center">
-            <p className="text-xs text-gray-500">
-              Default Admin: <code className="bg-gray-100 px-1.5 py-0.5 rounded text-gray-800 font-mono text-[11px]">admin@greatwayceylon.com</code> / <code className="bg-gray-100 px-1.5 py-0.5 rounded text-gray-800 font-mono text-[11px]">Admin@123</code>
-            </p>
-          </div>
         </form>
       </div>
     </div>
