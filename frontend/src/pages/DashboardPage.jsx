@@ -43,6 +43,7 @@ export default function DashboardPage() {
   const [previewModalOpen, setPreviewModalOpen] = useState(false);
   const [previewDoc, setPreviewDoc] = useState(null);
   const [previewType, setPreviewType] = useState('Quotation');
+  const [autoDownload, setAutoDownload] = useState(false);
 
   const fetchDashboardData = async () => {
     try {
@@ -73,6 +74,7 @@ export default function DashboardPage() {
       if (res.data && res.data.success) {
         setPreviewDoc(res.data.data);
         setPreviewType(doc.docType);
+        setAutoDownload(false);
         setPreviewModalOpen(true);
       }
     } catch (err) {
@@ -122,15 +124,18 @@ export default function DashboardPage() {
     try {
       setDownloadingId(doc._id);
       const isQuotation = doc.docType === 'Quotation';
-      await downloadDocumentPdf({
-        docType: isQuotation ? 'quotation' : 'invoice',
-        docId: doc._id,
-        docNumber: doc.docNumber,
-        settings,
-      });
+      const endpoint = isQuotation
+        ? `/quotations/${doc._id}`
+        : `/invoices/${doc._id}`;
+      const res = await axiosClient.get(endpoint);
+      if (res.data && res.data.success) {
+        setPreviewDoc(res.data.data);
+        setPreviewType(doc.docType);
+        setAutoDownload(true);
+        setPreviewModalOpen(true);
+      }
     } catch (err) {
-      console.error('PDF download error:', err);
-      alert('Failed to download PDF: ' + err.message);
+      alert('Failed to load document for download: ' + err.message);
     } finally {
       setDownloadingId(null);
     }
@@ -400,11 +405,15 @@ export default function DashboardPage() {
       {/* Reusable Document Preview Modal */}
       <DocumentPreviewModal
         isOpen={previewModalOpen}
-        onClose={() => setPreviewModalOpen(false)}
+        onClose={() => {
+          setPreviewModalOpen(false);
+          setAutoDownload(false);
+        }}
         docType={previewType}
         document={previewDoc}
         settings={settings}
         onRefresh={fetchDashboardData}
+        autoDownload={autoDownload}
       />
     </div>
   );

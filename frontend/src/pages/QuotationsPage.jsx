@@ -31,6 +31,7 @@ export default function QuotationsPage() {
 
   const [previewOpen, setPreviewOpen] = useState(false);
   const [activeQuotation, setActiveQuotation] = useState(null);
+  const [autoDownload, setAutoDownload] = useState(false);
 
   const fetchQuotations = async () => {
     try {
@@ -52,6 +53,7 @@ export default function QuotationsPage() {
 
   const handlePreview = (item) => {
     setActiveQuotation(item);
+    setAutoDownload(false);
     setPreviewOpen(true);
   };
 
@@ -92,22 +94,10 @@ export default function QuotationsPage() {
 
   const [downloadingId, setDownloadingId] = useState(null);
 
-  const handleDownloadPdf = async (item) => {
-    try {
-      setDownloadingId(item._id);
-      await downloadDocumentPdf({
-        docType: 'quotation',
-        docId: item._id,
-        docNumber: item.quotationNumber,
-        documentData: item,
-        settings,
-      });
-    } catch (err) {
-      console.error('PDF download error:', err);
-      alert('Failed to download PDF: ' + err.message);
-    } finally {
-      setDownloadingId(null);
-    }
+  const handleDownloadPdf = (item) => {
+    setActiveQuotation(item);
+    setAutoDownload(true);
+    setPreviewOpen(true);
   };
 
   const handleStatusChange = async (id, newStatus) => {
@@ -323,11 +313,15 @@ export default function QuotationsPage() {
       {/* Document Preview Modal */}
       <DocumentPreviewModal
         isOpen={previewOpen}
-        onClose={() => setPreviewOpen(false)}
+        onClose={() => {
+          setPreviewOpen(false);
+          setAutoDownload(false);
+        }}
         docType="Quotation"
         document={activeQuotation}
         settings={settings}
         onRefresh={fetchQuotations}
+        autoDownload={autoDownload}
       />
     </div>
   );

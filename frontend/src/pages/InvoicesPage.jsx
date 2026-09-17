@@ -30,6 +30,7 @@ export default function InvoicesPage() {
 
   const [previewOpen, setPreviewOpen] = useState(false);
   const [activeInvoice, setActiveInvoice] = useState(null);
+  const [autoDownload, setAutoDownload] = useState(false);
 
   const fetchInvoices = async () => {
     try {
@@ -51,6 +52,7 @@ export default function InvoicesPage() {
 
   const handlePreview = (item) => {
     setActiveInvoice(item);
+    setAutoDownload(false);
     setPreviewOpen(true);
   };
 
@@ -78,22 +80,10 @@ export default function InvoicesPage() {
 
   const [downloadingId, setDownloadingId] = useState(null);
 
-  const handleDownloadPdf = async (item) => {
-    try {
-      setDownloadingId(item._id);
-      await downloadDocumentPdf({
-        docType: 'invoice',
-        docId: item._id,
-        docNumber: item.invoiceNumber,
-        documentData: item,
-        settings,
-      });
-    } catch (err) {
-      console.error('PDF download error:', err);
-      alert('Failed to download PDF: ' + err.message);
-    } finally {
-      setDownloadingId(null);
-    }
+  const handleDownloadPdf = (item) => {
+    setActiveInvoice(item);
+    setAutoDownload(true);
+    setPreviewOpen(true);
   };
 
   const handleStatusChange = async (id, newStatus) => {
@@ -308,11 +298,15 @@ export default function InvoicesPage() {
       {/* Document Preview Modal */}
       <DocumentPreviewModal
         isOpen={previewOpen}
-        onClose={() => setPreviewOpen(false)}
+        onClose={() => {
+          setPreviewOpen(false);
+          setAutoDownload(false);
+        }}
         docType="Performa Invoice"
         document={activeInvoice}
         settings={settings}
         onRefresh={fetchInvoices}
+        autoDownload={autoDownload}
       />
     </div>
   );

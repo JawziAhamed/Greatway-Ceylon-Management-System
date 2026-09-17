@@ -23,6 +23,7 @@ export default function DocumentPreviewModal({
   document: docProp,
   settings,
   onRefresh,
+  autoDownload = false,
 }) {
   const navigate = useNavigate();
   const [currentDoc, setCurrentDoc] = useState(docProp);
@@ -30,15 +31,67 @@ export default function DocumentPreviewModal({
   const [converting, setConverting] = useState(false);
   const printContentRef = useRef(null);
 
+  const autoDownloadedRef = useRef(false);
+
   useEffect(() => {
     setCurrentDoc(docProp);
   }, [docProp]);
 
-  if (!isOpen || !currentDoc) return null;
-
   const isQuotation = docType === 'Quotation';
-  const docNumber = isQuotation ? currentDoc.quotationNumber : currentDoc.invoiceNumber;
-  const docId = currentDoc._id;
+  const docNumber = currentDoc
+    ? isQuotation
+      ? currentDoc.quotationNumber
+      : currentDoc.invoiceNumber
+    : '';
+  const docId = currentDoc?._id;
+
+  const handleDownloadPdf = async () => {
+    if (!currentDoc) return;
+    try {
+      setDownloading(true);
+      const docElement =
+        printContentRef.current ||
+        window.document.getElementById('printable-document-content');
+      await downloadDocumentPdf({
+        docType: isQuotation ? 'quotation' : 'invoice',
+        docId,
+        docNumber,
+        documentData: currentDoc,
+        settings,
+        element: docElement,
+      });
+    } catch (err) {
+      console.error('PDF download error:', err);
+      alert('Failed to download PDF: ' + err.message);
+    } finally {
+      setDownloading(false);
+    }
+  };
+
+  // Auto-download trigger when modal is invoked directly from table action button
+  useEffect(() => {
+    if (!isOpen) {
+      autoDownloadedRef.current = false;
+      return;
+    }
+
+    let timer;
+    if (autoDownload && currentDoc && !autoDownloadedRef.current) {
+      autoDownloadedRef.current = true;
+      timer = setTimeout(async () => {
+        try {
+          await handleDownloadPdf();
+        } finally {
+          setTimeout(() => {
+            if (onClose) onClose();
+          }, 600);
+        }
+      }, 400);
+    }
+    return () => clearTimeout(timer);
+  }, [isOpen, autoDownload, currentDoc]);
+
+  if (!isOpen || !currentDoc) return null;
 
   const handleStatusChange = async (newStatus) => {
     try {
@@ -60,26 +113,6 @@ export default function DocumentPreviewModal({
     setTimeout(() => {
       window.document.title = originalTitle;
     }, 1500);
-  };
-
-  const handleDownloadPdf = async () => {
-    try {
-      setDownloading(true);
-      const docElement = printContentRef.current || window.document.getElementById('printable-document-content');
-      await downloadDocumentPdf({
-        docType: isQuotation ? 'quotation' : 'invoice',
-        docId,
-        docNumber,
-        documentData: currentDoc,
-        settings,
-        element: docElement,
-      });
-    } catch (err) {
-      console.error('PDF download error:', err);
-      alert('Failed to download PDF: ' + err.message);
-    } finally {
-      setDownloading(false);
-    }
   };
 
   const handleDuplicate = async () => {
@@ -184,6 +217,13 @@ export default function DocumentPreviewModal({
             <Copy className="w-3.5 h-3.5" />
             Duplicate
           </button>
+
+          {autoDownload && (
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-lg text-xs font-medium animate-pulse">
+              <Loader2 className="w-3.5 h-3.5 animate-spin text-emerald-600" />
+              Generating PDF...
+            </span>
+          )}
 
           <button
             onClick={handleDownloadPdf}

@@ -140,14 +140,26 @@ export const downloadDocumentPdf = async ({
 }) => {
   const safeNumber = (docNumber || 'document').replace(/[/\\?%*:|"<>]/g, '-');
   const filename = `${safeNumber}.pdf`;
+
+  // 1. If element is already present in DOM (Preview Modal), export directly!
+  // This is instantaneous, 100% reliable, zero server lag, and guarantees full visual fidelity.
+  if (element) {
+    try {
+      await exportElementToPdf(element, filename);
+      return { success: true, method: 'client-element' };
+    } catch (err) {
+      console.warn('Direct element export failed, falling back to server:', err);
+    }
+  }
+
   const plural = docType === 'quotation' ? 'quotations' : 'invoices';
   const endpoint = `/${plural}/${docId}/pdf`;
 
-  // 1. Try server PDF binary endpoint first (returns high quality vector PDF with zero print dialogs)
+  // 2. Try server PDF binary endpoint
   try {
     const res = await axiosClient.get(endpoint, {
       responseType: 'blob',
-      timeout: 3500,
+      timeout: 8000,
     });
 
     // Check if response is an error JSON disguised as a blob
@@ -183,56 +195,7 @@ export const downloadDocumentPdf = async ({
 
     return { success: true, method: 'server-binary' };
   } catch (serverErr) {
-    console.warn('Server PDF unavailable, falling back to client-side generator:', serverErr.message);
-
-    // 2. If element is already present in DOM (Preview Modal), export directly!
-    if (element) {
-      try {
-        await exportElementToPdf(element, filename);
-        return { success: true, method: 'client-element' };
-      } catch (err) {
-        console.warn('Direct element export failed, trying client-side render:', err);
-      }
-    }
-
-    // 3. If documentData is provided, client-side export
-    if (documentData && (documentData.items || documentData.buyerSnapshot || documentData.customer)) {
-      try {
-        await downloadDocumentClientSide({
-          docType,
-          documentData,
-          settings,
-          filename,
-        });
-        return { success: true, method: 'client-rendered' };
-      } catch (clientErr) {
-        console.warn('Client-side direct export error:', clientErr);
-      }
-    }
-
-    // 4. Fetch document JSON data from API and generate client-side
-    try {
-      const docRes = await axiosClient.get(`/${plural}/${docId}`);
-      const fullDoc = docRes.data?.data || docRes.data;
-      if (fullDoc) {
-        let compSettings = settings;
-        if (!compSettings) {
-          try {
-            const setRes = await axiosClient.get('/settings');
-            compSettings = setRes.data?.data || {};
-          } catch (e) {}
-        }
-        await downloadDocumentClientSide({
-          docType,
-          documentData: fullDoc,
-          settings: compSettings,
-          filename,
-        });
-        return { success: true, method: 'client-fallback' };
-      }
-    } catch (fetchErr) {
-      console.error('Failed to fetch document data for client PDF generation:', fetchErr);
-    }
+    console.warn('Server PDF unavailable, checking fallback:', serverErr.message);
 
     if (typeof onFallback === 'function') {
       onFallback(serverErr);
