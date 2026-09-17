@@ -84,7 +84,7 @@ const runIncotermsTest = async () => {
       refreshedFOB.portOfLoading
     );
     console.log(`   Preview String: "${previewFOB}"`);
-    if (!previewFOB.startsWith('FOB') || !previewFOB.includes('Incoterms® 2020')) {
+    if (!previewFOB.startsWith('FOB') || (!previewFOB.includes('Incoterms®\u00A02020') && !previewFOB.includes('Incoterms® 2020'))) {
       throw new Error(`Invalid preview string: ${previewFOB}`);
     }
     console.log(`✔ CONFIRMED: Preview format matches "<Code> <Named Place> — Incoterms® 2020"`);

@@ -642,26 +642,26 @@ const generateInvoiceHTML = (invoice, settings, logoBase64) => {
         <td style="width: 50%;">
           <table style="width: 100%; border-collapse: collapse;">
             <tr>
-              <td style="border: none; padding: 2px 0; font-weight: bold; width: 130px;">PI NO:</td>
+              <td style="border: none; padding: 2px 8px 2px 0; font-weight: bold; width: 140px; white-space: nowrap;">PI NO:</td>
               <td style="border: none; padding: 2px 0; font-weight: bold;">${invoice.invoiceNumber}</td>
             </tr>
             <tr>
-              <td style="border: none; padding: 2px 0; font-weight: bold;">PI DATE:</td>
+              <td style="border: none; padding: 2px 8px 2px 0; font-weight: bold; width: 140px; white-space: nowrap;">PI DATE:</td>
               <td style="border: none; padding: 2px 0;">${formatDate(invoice.invoiceDate)}</td>
             </tr>
             <tr>
-              <td style="border: none; padding: 2px 0; font-weight: bold; vertical-align: top;">PAYMENT TERMS:</td>
+              <td style="border: none; padding: 2px 8px 2px 0; font-weight: bold; width: 140px; white-space: nowrap; vertical-align: top;">PAYMENT TERMS:</td>
               <td style="border: none; padding: 2px 0; font-size: 10px; line-height: 1.3;">${invoice.paymentTerms || ''}</td>
             </tr>
             <tr>
-              <td style="border: none; padding: 2px 0; font-weight: bold;">SHIPMENT REFERENCE:</td>
+              <td style="border: none; padding: 2px 8px 2px 0; font-weight: bold; width: 140px; white-space: nowrap;">SHIPMENT REFERENCE:</td>
               <td style="border: none; padding: 2px 0;">${invoice.shipmentReference || ''}</td>
             </tr>
             <tr>
-              <td style="border: none; padding: 2px 0; font-weight: bold;">INCOTERMS:</td>
+              <td style="border: none; padding: 2px 8px 2px 0; font-weight: bold; width: 140px; white-space: nowrap;">INCOTERMS:</td>
               <td style="border: none; padding: 2px 0; font-weight: bold;">${formatIncotermDisplay(invoice.incoterms, invoice.portOfDischarge, invoice.portOfLoading)}</td>
             </tr>
-            ${invoice.status ? `<tr><td style="border: none; padding: 2px 0; font-weight: bold;">STATUS:</td><td style="border: none; padding: 2px 0; font-weight: bold; color: #237837;">${invoice.status.toUpperCase()}</td></tr>` : ''}
+            ${invoice.status ? `<tr><td style="border: none; padding: 2px 8px 2px 0; font-weight: bold; width: 140px; white-space: nowrap;">STATUS:</td><td style="border: none; padding: 2px 0; font-weight: bold; color: #237837;">${invoice.status.toUpperCase()}</td></tr>` : ''}
           </table>
         </td>
       </tr>

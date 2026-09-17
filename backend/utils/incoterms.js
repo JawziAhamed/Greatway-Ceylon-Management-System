@@ -18,17 +18,30 @@ const getIncotermCode = (val) => {
   return firstWord || 'CIF';
 };
 
+const cleanNamedPlace = (val) => {
+  if (!val) return '';
+  let str = String(val).trim();
+  // Strip container yard / shipping terms in parentheses like (CY), (CY/CY), (CFS), etc.
+  str = str.replace(/\s*\([A-Z\s/]+\)\s*$/i, '').trim();
+  // Strip trailing commas, colons or hyphens
+  str = str.replace(/[,:-\s]+$/, '').trim();
+  return str;
+};
+
 const formatIncotermDisplay = (incoterm, destinationPort, loadingPort) => {
   const code = getIncotermCode(incoterm || 'CIF');
-  const namedPlace = (destinationPort || loadingPort || '').trim();
+  const rawPlace = (destinationPort || loadingPort || '').trim();
+  const namedPlace = cleanNamedPlace(rawPlace);
   if (namedPlace) {
-    return `${code} ${namedPlace} — Incoterms® 2020`;
+    return `${code} ${namedPlace} — Incoterms®\u00A02020`;
   }
-  return `${code} — Incoterms® 2020`;
+  return `${code} — Incoterms®\u00A02020`;
 };
 
 module.exports = {
   INCOTERMS_OPTIONS,
   getIncotermCode,
+  cleanNamedPlace,
   formatIncotermDisplay,
 };
+

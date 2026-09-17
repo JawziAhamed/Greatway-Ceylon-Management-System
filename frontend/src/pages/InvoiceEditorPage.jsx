@@ -45,7 +45,7 @@ export default function InvoiceEditorPage() {
   const [shippedPer, setShippedPer] = useState('Maersk , Salalah, Oman (CY)');
   const [voyageNo, setVoyageNo] = useState('OEL VARUN 639N');
   const [portOfLoading, setPortOfLoading] = useState('COLOMBO PORT SRI LANKA');
-  const [portOfDischarge, setPortOfDischarge] = useState('Salalah, Oman (CY)');
+  const [portOfDischarge, setPortOfDischarge] = useState('Salalah, Oman');
   const [containerSpecification, setContainerSpecification] = useState('1X40 REEFER');
   const [incoterms, setIncoterms] = useState('CIF');
 
@@ -601,7 +601,7 @@ export default function InvoiceEditorPage() {
                     type="text"
                     value={portOfDischarge}
                     onChange={(e) => setPortOfDischarge(e.target.value)}
-                    placeholder="e.g. Salalah, Oman (CY)"
+                    placeholder="e.g. Salalah, Oman"
                     className="w-full px-3 py-2 border border-gray-300 rounded-xl text-xs"
                   />
                 </div>

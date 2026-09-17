@@ -76,30 +76,34 @@ export default function PerformaInvoiceDocument({ invoice, settings = {} }) {
 
             {/* PI Details Box */}
             <div className="p-2.5 space-y-1 text-[10.5px]">
-              <div className="flex">
-                <span className="font-bold w-36">PI NO:</span>
-                <span className="font-bold">{invoice.invoiceNumber}</span>
-              </div>
-              <div className="flex">
-                <span className="font-bold w-36">PI DATE:</span>
-                <span>{formatDate(invoice.invoiceDate)}</span>
+              <div className="flex items-start">
+                <span className="font-bold w-[138px] shrink-0 whitespace-nowrap">PI NO:</span>
+                <span className="font-bold flex-1 min-w-0">{invoice.invoiceNumber}</span>
               </div>
               <div className="flex items-start">
-                <span className="font-bold w-36 shrink-0">PAYMENT TERMS:</span>
-                <span className="text-[10px] leading-snug">{invoice.paymentTerms}</span>
+                <span className="font-bold w-[138px] shrink-0 whitespace-nowrap">PI DATE:</span>
+                <span className="flex-1 min-w-0">{formatDate(invoice.invoiceDate)}</span>
               </div>
-              <div className="flex">
-                <span className="font-bold w-36">SHIPMENT REFERENCE:</span>
-                <span>: {invoice.shipmentReference}</span>
+              <div className="flex items-start">
+                <span className="font-bold w-[138px] shrink-0 whitespace-nowrap">PAYMENT TERMS:</span>
+                <span className="text-[10px] leading-snug flex-1 min-w-0">{invoice.paymentTerms}</span>
               </div>
-              <div className="flex">
-                <span className="font-bold w-36">INCOTERMS:</span>
-                <span className="font-bold">: {formatIncotermDisplay(invoice.incoterms, invoice.portOfDischarge, invoice.portOfLoading)}</span>
+              <div className="flex items-start">
+                <span className="font-bold w-[138px] shrink-0 whitespace-nowrap">SHIPMENT REFERENCE:</span>
+                <span className="flex-1 min-w-0">{invoice.shipmentReference}</span>
+              </div>
+              <div className="flex items-start">
+                <span className="font-bold w-[138px] shrink-0 whitespace-nowrap">INCOTERMS:</span>
+                <span className="font-bold text-gray-900 flex-1 min-w-0 leading-tight">
+                  {formatIncotermDisplay(invoice.incoterms, invoice.portOfDischarge, invoice.portOfLoading)}
+                </span>
               </div>
               {invoice.status && (
                 <div className="flex items-center">
-                  <span className="font-bold w-36">STATUS:</span>
-                  <span>: <span className="font-bold uppercase text-[10px] tracking-wider text-[#237837]">{invoice.status}</span></span>
+                  <span className="font-bold w-[138px] shrink-0 whitespace-nowrap">STATUS:</span>
+                  <span className="font-bold uppercase text-[10px] tracking-wider text-[#237837] flex-1 min-w-0">
+                    {invoice.status}
+                  </span>
                 </div>
               )}
             </div>
