@@ -60,9 +60,21 @@ const performaInvoiceSchema = new mongoose.Schema(
       type: String,
       default: 'Maersk , Salalah, Oman (CY)',
     },
+    vessel: {
+      type: String,
+      default: '',
+    },
     voyageNo: {
       type: String,
       default: 'OEL VARUN 639N',
+    },
+    containerNo: {
+      type: String,
+      default: '',
+    },
+    sealNumber: {
+      type: String,
+      default: '',
     },
     portOfLoading: {
       type: String,
@@ -71,6 +83,22 @@ const performaInvoiceSchema = new mongoose.Schema(
     portOfDischarge: {
       type: String,
       default: 'Salalah, Oman (CY)',
+    },
+    finalDestination: {
+      type: String,
+      default: '',
+    },
+    etd: {
+      type: String,
+      default: '',
+    },
+    eta: {
+      type: String,
+      default: '',
+    },
+    stack: {
+      type: String,
+      default: '',
     },
     containerSpecification: {
       type: String,
@@ -118,6 +146,10 @@ const performaInvoiceSchema = new mongoose.Schema(
     damagePolicy: {
       type: String,
       default: 'Damage Policy: If any of the Goods are found to be damaged upon receipt, the Purchaser shall notify the Supplier in writing, providing evidence such as photographs and videos, within seven (3) days of receipt of the Good (terms and conditions apply).',
+    },
+    termsAndConditions: {
+      type: [String],
+      default: [],
     },
     paymentRoutingNote: {
       type: String,

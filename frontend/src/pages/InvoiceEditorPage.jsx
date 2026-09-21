@@ -43,9 +43,16 @@ export default function InvoiceEditorPage() {
   // Shipping & Transport State
   const [shipmentReference, setShipmentReference] = useState('SH 226-04');
   const [shippedPer, setShippedPer] = useState('Maersk , Salalah, Oman (CY)');
-  const [voyageNo, setVoyageNo] = useState('OEL VARUN 639N');
-  const [portOfLoading, setPortOfLoading] = useState('COLOMBO PORT SRI LANKA');
-  const [portOfDischarge, setPortOfDischarge] = useState('Salalah, Oman');
+  const [vessel, setVessel] = useState('MSC PRELUDE V');
+  const [voyageNo, setVoyageNo] = useState('IW626R');
+  const [containerNo, setContainerNo] = useState('TBC');
+  const [sealNumber, setSealNumber] = useState('TBC');
+  const [portOfLoading, setPortOfLoading] = useState('DURBAN');
+  const [portOfDischarge, setPortOfDischarge] = useState('KHOR AL FAKKAN');
+  const [finalDestination, setFinalDestination] = useState('KHOR AL FAKKAN');
+  const [etd, setEtd] = useState('29/07/2026');
+  const [eta, setEta] = useState('12/08/2026');
+  const [stack, setStack] = useState('25/07 to 26/07 06:00 P');
   const [containerSpecification, setContainerSpecification] = useState('1X40 REEFER');
   const [incoterms, setIncoterms] = useState('CIF');
 
@@ -76,9 +83,29 @@ export default function InvoiceEditorPage() {
   const [paymentTerms, setPaymentTerms] = useState(
     '50% advance payment on PO, 40% payment upon shipment handover to CMB Port, 10% within 3 days of receiving the shipment at customers warehouse.'
   );
-  const [damagePolicy, setDamagePolicy] = useState(
-    'Damage Policy: If any of the Goods are found to be damaged upon receipt, the Purchaser shall notify the Supplier in writing, providing evidence such as photographs and videos, within seven (3) days of receipt of the Good (terms and conditions apply).'
-  );
+  const [termsAndConditions, setTermsAndConditions] = useState([
+    'Damages should be reported within 10 days of the arrival of goods at the destination port (Refer to attachment 01 for general terms and conditions)',
+    '*Greatway Ceylon will not accept liability for any damages if,- The goods are not cleared within 48 hours of arrival at the designated port of destination.- The reports of three temperature gauges are not submitted along with the temperature gauges,- The damage report is provided beyond 10 days from the arrival of the shipment.',
+    '* Greatway Ceylon will not be responsible for any damage sustained during the voyage, customer handling/ unloading process, or due to the lack of required temperature being maintained and improper cold chain management. No damages shall be accepted if the temperature gauges are not returned to our representatives when the shipment arrives.',
+    '*Acceptance of damages shall be at the sole discretion of Greatway Ceylon (Pvt) Ltd.',
+    '*Any amount deducted for damages cannot be arbitrarily decided by Nuragro FZE. If any deduction is to be made, it must be decided with the explicit consent of Greatway Ceylon (Pvt) Ltd. Deductions made without such consent shall be considered void and deemed payable to Greatway Ceylon (Pvt) Ltd.',
+  ]);
+  const [damagePolicy, setDamagePolicy] = useState('');
+
+  const handleAddTerm = () => {
+    setTermsAndConditions([...termsAndConditions, '']);
+  };
+
+  const handleRemoveTerm = (index) => {
+    if (termsAndConditions.length <= 1) return;
+    setTermsAndConditions(termsAndConditions.filter((_, i) => i !== index));
+  };
+
+  const handleTermChange = (index, value) => {
+    const updated = [...termsAndConditions];
+    updated[index] = value;
+    setTermsAndConditions(updated);
+  };
   const [paymentRoutingNote, setPaymentRoutingNote] = useState(
     "Payment should be made to our agent in the UAE, 'Greatway Ceylon Fruits and Vegetables Trading LLC'."
   );
@@ -123,9 +150,16 @@ export default function InvoiceEditorPage() {
             setNotes(inv.notes || '');
             setShipmentReference(inv.shipmentReference || '');
             setShippedPer(inv.shippedPer || '');
-            setVoyageNo(inv.voyageNo || '');
-            setPortOfLoading(inv.portOfLoading || '');
-            setPortOfDischarge(inv.portOfDischarge || '');
+            setVessel(inv.vessel || inv.shippedPer || 'MSC PRELUDE V');
+            setVoyageNo(inv.voyageNo || 'IW626R');
+            setContainerNo(inv.containerNo || inv.containerSpecification || 'TBC');
+            setSealNumber(inv.sealNumber || 'TBC');
+            setPortOfLoading(inv.portOfLoading || 'DURBAN');
+            setPortOfDischarge(inv.portOfDischarge || 'KHOR AL FAKKAN');
+            setFinalDestination(inv.finalDestination || inv.portOfDischarge || 'KHOR AL FAKKAN');
+            setEtd(inv.etd || '29/07/2026');
+            setEta(inv.eta || '12/08/2026');
+            setStack(inv.stack || '25/07 to 26/07 06:00 P');
             setContainerSpecification(inv.containerSpecification || '');
             setIncoterms(inv.incoterms || 'CIF');
             setItems(inv.items || []);
@@ -136,6 +170,11 @@ export default function InvoiceEditorPage() {
             setTax(inv.tax || 0);
             setPaymentTerms(inv.paymentTerms || '');
             setDamagePolicy(inv.damagePolicy || '');
+            if (inv.termsAndConditions && inv.termsAndConditions.length > 0) {
+              setTermsAndConditions(inv.termsAndConditions);
+            } else if (inv.damagePolicy) {
+              setTermsAndConditions(inv.damagePolicy.split('\n').filter((l) => l.trim()));
+            }
             setPaymentRoutingNote(inv.paymentRoutingNote || '');
             if (inv.bankDetails) setBankDetails(inv.bankDetails);
           }
@@ -308,9 +347,16 @@ export default function InvoiceEditorPage() {
         notes,
         shipmentReference,
         shippedPer,
+        vessel,
         voyageNo,
+        containerNo,
+        sealNumber,
         portOfLoading,
         portOfDischarge,
+        finalDestination,
+        etd,
+        eta,
+        stack,
         containerSpecification,
         incoterms: getIncotermCode(incoterms),
         items: items.map((it) => ({
@@ -328,7 +374,8 @@ export default function InvoiceEditorPage() {
         discount: Number(discount) || 0,
         tax: Number(tax) || 0,
         paymentTerms,
-        damagePolicy,
+        damagePolicy: termsAndConditions.join('\n'),
+        termsAndConditions,
         paymentRoutingNote,
         bankDetails,
       };
@@ -363,9 +410,16 @@ export default function InvoiceEditorPage() {
     currency,
     shipmentReference,
     shippedPer,
+    vessel,
     voyageNo,
+    containerNo,
+    sealNumber,
     portOfLoading,
     portOfDischarge,
+    finalDestination,
+    etd,
+    eta,
+    stack,
     containerSpecification,
     incoterms,
     items,
@@ -376,7 +430,8 @@ export default function InvoiceEditorPage() {
     tax: Number(tax) || 0,
     grandTotal,
     paymentTerms,
-    damagePolicy,
+    damagePolicy: termsAndConditions.join('\n'),
+    termsAndConditions,
     paymentRoutingNote,
     bankDetails,
     status,
@@ -598,52 +653,130 @@ export default function InvoiceEditorPage() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-semibold text-gray-700 mb-1">
-                    Shipped Per
+                    Vessel
                   </label>
                   <input
                     type="text"
-                    value={shippedPer}
-                    onChange={(e) => setShippedPer(e.target.value)}
-                    placeholder="e.g. Maersk , Salalah, Oman (CY)"
+                    value={vessel}
+                    onChange={(e) => setVessel(e.target.value)}
+                    placeholder="e.g. MSC PRELUDE V"
                     className="w-full px-3 py-2 border border-gray-300 rounded-xl text-xs"
                   />
                 </div>
 
                 <div>
                   <label className="block text-xs font-semibold text-gray-700 mb-1">
-                    Voyage No.
+                    Voyage Number
                   </label>
                   <input
                     type="text"
                     value={voyageNo}
                     onChange={(e) => setVoyageNo(e.target.value)}
-                    placeholder="e.g. OEL VARUN 639N"
+                    placeholder="e.g. IW626R"
                     className="w-full px-3 py-2 border border-gray-300 rounded-xl text-xs"
                   />
                 </div>
 
                 <div>
                   <label className="block text-xs font-semibold text-gray-700 mb-1">
-                    Port of Loading
+                    Container No
+                  </label>
+                  <input
+                    type="text"
+                    value={containerNo}
+                    onChange={(e) => setContainerNo(e.target.value)}
+                    placeholder="e.g. TBC or 1X40 REEFER"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-xl text-xs font-mono"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-gray-700 mb-1">
+                    Seal Number
+                  </label>
+                  <input
+                    type="text"
+                    value={sealNumber}
+                    onChange={(e) => setSealNumber(e.target.value)}
+                    placeholder="e.g. TBC"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-xl text-xs font-mono"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-gray-700 mb-1">
+                    POL (Port of Loading)
                   </label>
                   <input
                     type="text"
                     value={portOfLoading}
                     onChange={(e) => setPortOfLoading(e.target.value)}
-                    placeholder="e.g. COLOMBO PORT SRI LANKA"
+                    placeholder="e.g. DURBAN or COLOMBO PORT"
                     className="w-full px-3 py-2 border border-gray-300 rounded-xl text-xs"
                   />
                 </div>
 
                 <div>
                   <label className="block text-xs font-semibold text-gray-700 mb-1">
-                    Port of Discharge
+                    POD (Port of Discharge)
                   </label>
                   <input
                     type="text"
                     value={portOfDischarge}
                     onChange={(e) => setPortOfDischarge(e.target.value)}
-                    placeholder="e.g. Salalah, Oman"
+                    placeholder="e.g. KHOR AL FAKKAN or Salalah, Oman"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-xl text-xs"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-gray-700 mb-1">
+                    Final Destination
+                  </label>
+                  <input
+                    type="text"
+                    value={finalDestination}
+                    onChange={(e) => setFinalDestination(e.target.value)}
+                    placeholder="e.g. KHOR AL FAKKAN"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-xl text-xs"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-gray-700 mb-1">
+                    ETD
+                  </label>
+                  <input
+                    type="text"
+                    value={etd}
+                    onChange={(e) => setEtd(e.target.value)}
+                    placeholder="e.g. 29/07/2026"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-xl text-xs"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-gray-700 mb-1">
+                    ETA
+                  </label>
+                  <input
+                    type="text"
+                    value={eta}
+                    onChange={(e) => setEta(e.target.value)}
+                    placeholder="e.g. 12/08/2026"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-xl text-xs"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-gray-700 mb-1">
+                    Stack
+                  </label>
+                  <input
+                    type="text"
+                    value={stack}
+                    onChange={(e) => setStack(e.target.value)}
+                    placeholder="e.g. 25/07 to 26/07 06:00 P"
                     className="w-full px-3 py-2 border border-gray-300 rounded-xl text-xs"
                   />
                 </div>
@@ -868,16 +1001,50 @@ export default function InvoiceEditorPage() {
                   />
                 </div>
 
-                <div>
-                  <label className="block text-xs font-semibold text-gray-700 mb-1">
-                    Damage Policy
-                  </label>
-                  <textarea
-                    rows={2}
-                    value={damagePolicy}
-                    onChange={(e) => setDamagePolicy(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-xl text-xs"
-                  />
+                {/* Terms & Conditions (Points-wise) */}
+                <div className="space-y-2 pt-2 border-t border-gray-200">
+                  <div className="flex justify-between items-center">
+                    <label className="block text-xs font-bold text-gray-800">
+                      Terms &amp; Conditions (Points-wise)
+                    </label>
+                    <button
+                      type="button"
+                      onClick={handleAddTerm}
+                      className="inline-flex items-center gap-1 text-xs text-brand-700 hover:text-brand-800 font-semibold"
+                    >
+                      <Plus className="w-3.5 h-3.5" />
+                      <span>Add Point</span>
+                    </button>
+                  </div>
+                  <p className="text-[11px] text-gray-500">
+                    Add terms and conditions point-by-point. Each point appears on its own line in the document.
+                  </p>
+                  <div className="space-y-2">
+                    {termsAndConditions.map((term, tIdx) => (
+                      <div key={tIdx} className="flex items-start gap-2">
+                        <span className="text-xs font-bold text-gray-400 mt-2 w-5 text-right shrink-0">
+                          {tIdx + 1}.
+                        </span>
+                        <textarea
+                          rows={2}
+                          value={term}
+                          onChange={(e) => handleTermChange(tIdx, e.target.value)}
+                          onFocus={(e) => e.target.select()}
+                          placeholder={`Point ${tIdx + 1}...`}
+                          className="flex-1 px-3 py-1.5 border border-gray-300 rounded-xl text-xs focus:ring-1 focus:ring-brand-700"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveTerm(tIdx)}
+                          disabled={termsAndConditions.length <= 1}
+                          className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition disabled:opacity-30 mt-1"
+                          title="Remove Point"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
                 </div>
 
                 {/* Bank Details Selector */}

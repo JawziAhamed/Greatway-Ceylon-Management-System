@@ -20,9 +20,24 @@ const formatDate = (dateInput) => {
   return `${day}/${month}/${year}`;
 };
 
+const getWatermarkBase64 = () => {
+  try {
+    const wmPath = path.join(__dirname, '../uploads/watermark_logo.png');
+    if (fs.existsSync(wmPath)) {
+      return fs.readFileSync(wmPath).toString('base64');
+    }
+  } catch (e) {}
+  return '';
+};
+
 // Generate Quotation HTML matching quotation_page_1.png
-const generateQuotationHTML = (quotation, settings, logoBase64) => {
-  const buyer = quotation.buyerSnapshot || {};
+const generateQuotationHTML = (quotation, settings = {}, logoBase64) => {
+  const buyer =
+    quotation.buyerSnapshot && (quotation.buyerSnapshot.companyName || quotation.buyerSnapshot.address)
+      ? quotation.buyerSnapshot
+      : quotation.customer && typeof quotation.customer === 'object'
+      ? quotation.customer
+      : quotation.buyer || {};
   const companyName = settings.companyName || 'GREATWAY CEYLON (PVT) LTD';
   const companyAddress = settings.address || 'No. 76/A, Rathamba, Ambagasdowa, Sri Lanka - 90300';
   const email = settings.email || 'info@greatwayceylon.com';
@@ -73,6 +88,8 @@ const generateQuotationHTML = (quotation, settings, logoBase64) => {
     )
     .join('');
 
+  const watermarkBase64 = getWatermarkBase64();
+
   return `
 <!DOCTYPE html>
 <html lang="en">
@@ -101,6 +118,7 @@ const generateQuotationHTML = (quotation, settings, logoBase64) => {
       width: 100%;
       max-width: 800px;
       margin: 0 auto;
+      position: relative;
     }
     .header-row {
       display: flex;
@@ -297,6 +315,10 @@ const generateQuotationHTML = (quotation, settings, logoBase64) => {
             <td class="meta-label">QUOTATION NO</td>
             <td style="font-weight: bold;">: ${quotation.quotationNumber}</td>
           </tr>
+          <tr>
+            <td class="meta-label">SALE TYPE</td>
+            <td style="font-weight: bold; color: #14663e;">: ${quotation.saleType || 'Own Sale'}</td>
+          </tr>
           ${quotation.validUntil ? `<tr><td class="meta-label">VALID UNTIL</td><td>: ${formatDate(quotation.validUntil)}</td></tr>` : ''}
           <tr>
             <td class="meta-label">CURRENCY</td>
@@ -394,6 +416,13 @@ const generateQuotationHTML = (quotation, settings, logoBase64) => {
         </tr>
       </table>
     </div>
+
+    <!-- Transparent Watermark Logo at Right Bottom -->
+    ${watermarkBase64 ? `
+    <div style="position: absolute; right: 15px; bottom: 15px; pointer-events: none; opacity: 0.20;">
+      <img src="data:image/png;base64,${watermarkBase64}" style="width: 65px; height: 65px; object-fit: contain;" alt="Watermark" />
+    </div>
+    ` : ''}
   </div>
 </body>
 </html>
@@ -401,8 +430,13 @@ const generateQuotationHTML = (quotation, settings, logoBase64) => {
 };
 
 // Generate Performa Invoice HTML matching invoice_page_1.png
-const generateInvoiceHTML = (invoice, settings, logoBase64) => {
-  const buyer = invoice.buyerSnapshot || {};
+const generateInvoiceHTML = (invoice, settings = {}, logoBase64) => {
+  const buyer =
+    invoice.buyerSnapshot && (invoice.buyerSnapshot.companyName || invoice.buyerSnapshot.address)
+      ? invoice.buyerSnapshot
+      : invoice.customer && typeof invoice.customer === 'object'
+      ? invoice.customer
+      : invoice.buyer || {};
   const companyName = settings.companyName || 'GREATWAY CEYLON (PVT) LTD';
   const companyAddress = settings.address || 'No. 76/A, Rathamba, Ambagasdowa, Sri Lanka - 90300';
   const email = settings.email || 'info@greatwayceylon.com';
@@ -461,6 +495,25 @@ const generateInvoiceHTML = (invoice, settings, logoBase64) => {
   `
       : '';
 
+  const termsList =
+    invoice.termsAndConditions && invoice.termsAndConditions.length > 0
+      ? invoice.termsAndConditions
+      : invoice.damagePolicy
+      ? invoice.damagePolicy.split('\n').filter((l) => l.trim())
+      : [
+          'Damages should be reported within 10 days of the arrival of goods at the destination port (Refer to attachment 01 for general terms and conditions)',
+          '*Greatway Ceylon will not accept liability for any damages if,- The goods are not cleared within 48 hours of arrival at the designated port of destination.- The reports of three temperature gauges are not submitted along with the temperature gauges,- The damage report is provided beyond 10 days from the arrival of the shipment.',
+          '* Greatway Ceylon will not be responsible for any damage sustained during the voyage, customer handling/ unloading process, or due to the lack of required temperature being maintained and improper cold chain management. No damages shall be accepted if the temperature gauges are not returned to our representatives when the shipment arrives.',
+          '*Acceptance of damages shall be at the sole discretion of Greatway Ceylon (Pvt) Ltd.',
+          '*Any amount deducted for damages cannot be arbitrarily decided by Nuragro FZE. If any deduction is to be made, it must be decided with the explicit consent of Greatway Ceylon (Pvt) Ltd. Deductions made without such consent shall be considered void and deemed payable to Greatway Ceylon (Pvt) Ltd.',
+        ];
+
+  const termsListHTML = termsList
+    .map((point) => `<div style="margin-bottom: 3px; line-height: 1.35;">${point}</div>`)
+    .join('');
+
+  const watermarkBase64 = getWatermarkBase64();
+
   return `
 <!DOCTYPE html>
 <html lang="en">
@@ -491,6 +544,7 @@ const generateInvoiceHTML = (invoice, settings, logoBase64) => {
       margin: 0 auto;
       border: 1.5px solid #111;
       padding: 12px 14px;
+      position: relative;
     }
     .header-section {
       display: flex;
@@ -656,59 +710,53 @@ const generateInvoiceHTML = (invoice, settings, logoBase64) => {
     <!-- Meta Grid -->
     <table class="info-grid">
       <tr>
-        <td style="width: 50%;">
+        <td style="width: 50%; vertical-align: top;">
           <div class="sub-field-title">CUSTOMERS DETAILS:</div>
           <div style="font-weight: bold; font-size: 11px;">${buyer.companyName || 'N/A'}</div>
           <div>${buyer.address ? buyer.address.replace(/\n/g, '<br>') : ''}</div>
           ${buyer.country ? `<div>${buyer.country}</div>` : ''}
+
+          <div style="border-top: 1px solid #ddd; padding-top: 6px; margin-top: 6px;">
+            <table style="width: 100%; border-collapse: collapse;">
+              <tr>
+                <td style="border: none; padding: 2px 6px 2px 0; font-weight: bold; width: 130px; white-space: nowrap;">PI NO:</td>
+                <td style="border: none; padding: 2px 0; font-weight: bold;">${invoice.invoiceNumber}</td>
+              </tr>
+              <tr>
+                <td style="border: none; padding: 2px 6px 2px 0; font-weight: bold; width: 130px; white-space: nowrap;">PI DATE:</td>
+                <td style="border: none; padding: 2px 0;">${formatDate(invoice.invoiceDate)}</td>
+              </tr>
+              <tr>
+                <td style="border: none; padding: 2px 6px 2px 0; font-weight: bold; width: 130px; white-space: nowrap; vertical-align: top;">PAYMENT TERMS:</td>
+                <td style="border: none; padding: 2px 0; font-size: 10px; line-height: 1.3;">${invoice.paymentTerms || ''}</td>
+              </tr>
+              <tr>
+                <td style="border: none; padding: 2px 6px 2px 0; font-weight: bold; width: 130px; white-space: nowrap;">SHIPMENT REFERENCE:</td>
+                <td style="border: none; padding: 2px 0;">${invoice.shipmentReference || ''}</td>
+              </tr>
+              <tr>
+                <td style="border: none; padding: 2px 6px 2px 0; font-weight: bold; width: 130px; white-space: nowrap;">INCOTERMS:</td>
+                <td style="border: none; padding: 2px 0; font-weight: bold;">${getIncotermCode(invoice.incoterms) || invoice.incoterms || 'CIF'}</td>
+              </tr>
+              ${invoice.status ? `<tr><td style="border: none; padding: 2px 6px 2px 0; font-weight: bold; width: 130px; white-space: nowrap;">STATUS:</td><td style="border: none; padding: 2px 0; font-weight: bold; color: #237837;">${invoice.status.toUpperCase()}</td></tr>` : ''}
+            </table>
+          </div>
         </td>
-        <td style="width: 50%;">
+        <td style="width: 50%; vertical-align: top;">
           <table style="width: 100%; border-collapse: collapse;">
-            <tr>
-              <td style="border: none; padding: 2px 8px 2px 0; font-weight: bold; width: 140px; white-space: nowrap;">PI NO:</td>
-              <td style="border: none; padding: 2px 0; font-weight: bold;">${invoice.invoiceNumber}</td>
-            </tr>
-            <tr>
-              <td style="border: none; padding: 2px 8px 2px 0; font-weight: bold; width: 140px; white-space: nowrap;">PI DATE:</td>
-              <td style="border: none; padding: 2px 0;">${formatDate(invoice.invoiceDate)}</td>
-            </tr>
-            <tr>
-              <td style="border: none; padding: 2px 8px 2px 0; font-weight: bold; width: 140px; white-space: nowrap; vertical-align: top;">PAYMENT TERMS:</td>
-              <td style="border: none; padding: 2px 0; font-size: 10px; line-height: 1.3;">${invoice.paymentTerms || ''}</td>
-            </tr>
-            <tr>
-              <td style="border: none; padding: 2px 8px 2px 0; font-weight: bold; width: 140px; white-space: nowrap;">SHIPMENT REFERENCE:</td>
-              <td style="border: none; padding: 2px 0;">${invoice.shipmentReference || ''}</td>
-            </tr>
-            <tr>
-              <td style="border: none; padding: 2px 8px 2px 0; font-weight: bold; width: 140px; white-space: nowrap;">INCOTERMS:</td>
-              <td style="border: none; padding: 2px 0; font-weight: bold;">${formatIncotermDisplay(invoice.incoterms, invoice.portOfDischarge, invoice.portOfLoading)}</td>
-            </tr>
-            ${invoice.status ? `<tr><td style="border: none; padding: 2px 8px 2px 0; font-weight: bold; width: 140px; white-space: nowrap;">STATUS:</td><td style="border: none; padding: 2px 0; font-weight: bold; color: #237837;">${invoice.status.toUpperCase()}</td></tr>` : ''}
+            <tr><td style="border: none; padding: 2px 8px 2px 0; font-weight: bold; text-align: right; white-space: nowrap;">Vessel:</td><td style="border: none; padding: 2px 0; width: 55%; font-weight: normal;">${invoice.vessel || invoice.shippedPer || 'MSC PRELUDE V'}</td></tr>
+            <tr><td style="border: none; padding: 2px 8px 2px 0; font-weight: bold; text-align: right; white-space: nowrap;">Voyage Number:</td><td style="border: none; padding: 2px 0; width: 55%; font-weight: normal;">${invoice.voyageNo || 'IW626R'}</td></tr>
+            <tr><td style="border: none; padding: 2px 8px 2px 0; font-weight: bold; text-align: right; white-space: nowrap;">Container No:</td><td style="border: none; padding: 2px 0; width: 55%; font-weight: normal;">${invoice.containerNo || invoice.containerSpecification || 'TBC'}</td></tr>
+            <tr><td style="border: none; padding: 2px 8px 2px 0; font-weight: bold; text-align: right; white-space: nowrap;">Seal Number:</td><td style="border: none; padding: 2px 0; width: 55%; font-weight: normal;">${invoice.sealNumber || 'TBC'}</td></tr>
+            <tr><td style="border: none; padding: 2px 8px 2px 0; font-weight: bold; text-align: right; white-space: nowrap;">POL:</td><td style="border: none; padding: 2px 0; width: 55%; font-weight: normal;">${invoice.portOfLoading || 'DURBAN'}</td></tr>
+            <tr><td style="border: none; padding: 2px 8px 2px 0; font-weight: bold; text-align: right; white-space: nowrap;">POD:</td><td style="border: none; padding: 2px 0; width: 55%; font-weight: normal;">${invoice.portOfDischarge || 'KHOR AL FAKKAN'}</td></tr>
+            <tr><td style="border: none; padding: 2px 8px 2px 0; font-weight: bold; text-align: right; white-space: nowrap;">Final Destination:</td><td style="border: none; padding: 2px 0; width: 55%; font-weight: normal;">${invoice.finalDestination || invoice.portOfDischarge || 'KHOR AL FAKKAN'}</td></tr>
+            <tr><td style="border: none; padding: 2px 8px 2px 0; font-weight: bold; text-align: right; white-space: nowrap;">ETD:</td><td style="border: none; padding: 2px 0; width: 55%; font-weight: normal;">${invoice.etd || '29/07/2026'}</td></tr>
+            <tr><td style="border: none; padding: 2px 8px 2px 0; font-weight: bold; text-align: right; white-space: nowrap;">ETA:</td><td style="border: none; padding: 2px 0; width: 55%; font-weight: normal;">${invoice.eta || '12/08/2026'}</td></tr>
+            <tr><td style="border: none; padding: 2px 8px 2px 0; font-weight: bold; text-align: right; white-space: nowrap;">Stack :</td><td style="border: none; padding: 2px 0; width: 55%; font-weight: normal;">${invoice.stack || '25/07 to 26/07 06:00 P'}</td></tr>
           </table>
         </td>
       </tr>
-      <tr>
-        <td><strong>SHIPPED PER:</strong> ${invoice.shippedPer || ''}</td>
-        <td><strong>VOYAGE NO.:</strong> ${invoice.voyageNo || ''}</td>
-      </tr>
-      <tr>
-        <td>
-          <div style="font-weight: bold; text-decoration: underline; margin-bottom: 2px;">PORT OF LOADING</div>
-          <div>${invoice.portOfLoading || 'COLOMBO PORT SRI LANKA'}</div>
-        </td>
-        <td>
-          <div style="font-weight: bold; text-decoration: underline; margin-bottom: 2px;">PORT OF DISCHARGE</div>
-          <div>${invoice.portOfDischarge || ''}</div>
-        </td>
-      </tr>
-      ${invoice.containerSpecification ? `
-      <tr>
-        <td colspan="2" style="border: 1px solid #111; padding: 6px 8px; font-size: 10.5px;">
-          <strong>CONTAINER SPECIFICATION:</strong> ${invoice.containerSpecification}
-        </td>
-      </tr>
-      ` : ''}
     </table>
 
     <!-- Items Table -->
@@ -741,7 +789,7 @@ const generateInvoiceHTML = (invoice, settings, logoBase64) => {
     <!-- Terms & Conditions -->
     <div class="terms-box">
       <div class="terms-title">TERMS & CONDITIONS</div>
-      <div>${invoice.damagePolicy || ''}</div>
+      <div>${termsListHTML}</div>
     </div>
 
     <!-- Bank Details -->
@@ -785,6 +833,13 @@ const generateInvoiceHTML = (invoice, settings, logoBase64) => {
         <div style="font-weight: 500;">Authorized Signatory</div>
       </div>
     </div>
+
+    <!-- Transparent Watermark Logo at Right Bottom -->
+    ${watermarkBase64 ? `
+    <div style="position: absolute; right: 15px; bottom: 15px; pointer-events: none; opacity: 0.20;">
+      <img src="data:image/png;base64,${watermarkBase64}" style="width: 65px; height: 65px; object-fit: contain;" alt="Watermark" />
+    </div>
+    ` : ''}
   </div>
 </body>
 </html>

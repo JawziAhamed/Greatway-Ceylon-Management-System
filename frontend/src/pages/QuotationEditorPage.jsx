@@ -42,6 +42,7 @@ export default function QuotationEditorPage() {
     'Line : MAERSK  Transit time : 05 DAYS DIRECT | FREE TIME AT DESTINATION : 7 DAYS'
   );
   const [departureDateText, setDepartureDateText] = useState('22nd September 2026');
+  const [saleType, setSaleType] = useState('Own Sale');
   const [status, setStatus] = useState('Draft');
   const [notes, setNotes] = useState('');
 
@@ -118,6 +119,7 @@ export default function QuotationEditorPage() {
             setPaymentTerms(q.paymentTerms || '');
             setDeliveryTerms(q.deliveryTerms || '');
             setIncoterms(q.incoterms || 'CIF');
+            setSaleType(q.saleType || 'Own Sale');
             setSpecificTerms(q.specificTerms || []);
           }
         } else {
@@ -260,6 +262,7 @@ export default function QuotationEditorPage() {
         paymentTerms,
         deliveryTerms,
         incoterms: getIncotermCode(incoterms),
+        saleType: saleType || 'Own Sale',
         specificTerms,
         status,
         notes,
@@ -295,6 +298,7 @@ export default function QuotationEditorPage() {
     buyerSnapshot: selectedCustomerObj || { companyName: 'Select Customer' },
     currency,
     incoterms,
+    saleType,
     vesselDetails,
     departureDateText,
     items,
@@ -515,6 +519,20 @@ export default function QuotationEditorPage() {
                         {opt.label}
                       </option>
                     ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-gray-700 mb-1">
+                    Sale Type
+                  </label>
+                  <select
+                    value={saleType}
+                    onChange={(e) => setSaleType(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-xl text-xs bg-white font-medium focus:ring-1 focus:ring-brand-700"
+                  >
+                    <option value="Own Sale">Own Sale</option>
+                    <option value="Commission based sale">Commission based sale</option>
                   </select>
                 </div>
 

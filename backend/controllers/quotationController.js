@@ -134,6 +134,7 @@ const createQuotation = async (req, res) => {
       paymentTerms,
       deliveryTerms,
       incoterms,
+      saleType = 'Own Sale',
       specificTerms,
       signatory,
       status = 'Draft',
@@ -210,6 +211,7 @@ const createQuotation = async (req, res) => {
       paymentTerms,
       deliveryTerms,
       incoterms: incoterms || 'CIF',
+      saleType: saleType || 'Own Sale',
       specificTerms: specificTerms || [],
       signatory: signatory || {
         name: 'Authorized Signatory',
@@ -334,6 +336,7 @@ const updateQuotation = async (req, res) => {
     existing.paymentTerms = paymentTerms !== undefined ? paymentTerms : existing.paymentTerms;
     existing.deliveryTerms = deliveryTerms !== undefined ? deliveryTerms : existing.deliveryTerms;
     existing.incoterms = incoterms || existing.incoterms;
+    existing.saleType = req.body.saleType !== undefined ? req.body.saleType : (existing.saleType || 'Own Sale');
     existing.specificTerms = specificTerms || existing.specificTerms;
     existing.signatory = signatory || existing.signatory;
     existing.status = status || existing.status;
@@ -519,6 +522,7 @@ const convertToInvoice = async (req, res) => {
       damagePolicy:
         settings?.invoiceSettings?.defaultDamagePolicy ||
         'Damage Policy: If any of the Goods are found to be damaged upon receipt, the Purchaser shall notify the Supplier in writing, providing evidence such as photographs and videos, within seven (3) days of receipt of the Good (terms and conditions apply).',
+      termsAndConditions: quotation.specificTerms && quotation.specificTerms.length > 0 ? quotation.specificTerms : [],
       paymentRoutingNote: 'Payment should be made to our bank account as follows:',
       bankDetails: {
         accountName: defaultBank.accountName,

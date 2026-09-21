@@ -100,6 +100,11 @@ const quotationSchema = new mongoose.Schema(
       type: String,
       default: 'CIF',
     },
+    saleType: {
+      type: String,
+      enum: ['Own Sale', 'Commission based sale'],
+      default: 'Own Sale',
+    },
     specificTerms: {
       type: [String],
       default: [],

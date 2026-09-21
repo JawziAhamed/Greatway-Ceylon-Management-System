@@ -126,9 +126,16 @@ const createInvoice = async (req, res) => {
       paymentTerms,
       shipmentReference,
       shippedPer,
+      vessel,
       voyageNo,
+      containerNo,
+      sealNumber,
       portOfLoading,
       portOfDischarge,
+      finalDestination,
+      etd,
+      eta,
+      stack,
       containerSpecification,
       incoterms,
       items = [],
@@ -138,6 +145,7 @@ const createInvoice = async (req, res) => {
       discount = 0,
       tax = 0,
       damagePolicy,
+      termsAndConditions = [],
       paymentRoutingNote,
       bankDetails,
       signatory,
@@ -203,9 +211,16 @@ const createInvoice = async (req, res) => {
       paymentTerms,
       shipmentReference: shipmentReference || 'SH 226-04',
       shippedPer: shippedPer || 'Maersk , Salalah, Oman (CY)',
+      vessel: vessel || '',
       voyageNo: voyageNo || 'OEL VARUN 639N',
+      containerNo: containerNo || '',
+      sealNumber: sealNumber || '',
       portOfLoading: portOfLoading || 'COLOMBO PORT SRI LANKA',
       portOfDischarge: portOfDischarge || 'Salalah, Oman (CY)',
+      finalDestination: finalDestination || '',
+      etd: etd || '',
+      eta: eta || '',
+      stack: stack || '',
       containerSpecification: containerSpecification || '1X40 REEFER',
       incoterms: incoterms || 'CIF',
       items: calculatedItems,
@@ -218,6 +233,7 @@ const createInvoice = async (req, res) => {
       grandTotal,
       amountInWords: words,
       damagePolicy,
+      termsAndConditions: Array.isArray(termsAndConditions) ? termsAndConditions : [],
       paymentRoutingNote,
       bankDetails,
       signatory,
@@ -249,9 +265,16 @@ const updateInvoice = async (req, res) => {
       paymentTerms,
       shipmentReference,
       shippedPer,
+      vessel,
       voyageNo,
+      containerNo,
+      sealNumber,
       portOfLoading,
       portOfDischarge,
+      finalDestination,
+      etd,
+      eta,
+      stack,
       containerSpecification,
       incoterms,
       items,
@@ -261,6 +284,7 @@ const updateInvoice = async (req, res) => {
       discount,
       tax,
       damagePolicy,
+      termsAndConditions,
       paymentRoutingNote,
       bankDetails,
       signatory,
@@ -332,9 +356,16 @@ const updateInvoice = async (req, res) => {
     existing.paymentTerms = paymentTerms !== undefined ? paymentTerms : existing.paymentTerms;
     existing.shipmentReference = shipmentReference !== undefined ? shipmentReference : existing.shipmentReference;
     existing.shippedPer = shippedPer !== undefined ? shippedPer : existing.shippedPer;
+    existing.vessel = vessel !== undefined ? vessel : existing.vessel;
     existing.voyageNo = voyageNo !== undefined ? voyageNo : existing.voyageNo;
+    existing.containerNo = containerNo !== undefined ? containerNo : existing.containerNo;
+    existing.sealNumber = sealNumber !== undefined ? sealNumber : existing.sealNumber;
     existing.portOfLoading = portOfLoading !== undefined ? portOfLoading : existing.portOfLoading;
     existing.portOfDischarge = portOfDischarge !== undefined ? portOfDischarge : existing.portOfDischarge;
+    existing.finalDestination = finalDestination !== undefined ? finalDestination : existing.finalDestination;
+    existing.etd = etd !== undefined ? etd : existing.etd;
+    existing.eta = eta !== undefined ? eta : existing.eta;
+    existing.stack = stack !== undefined ? stack : existing.stack;
     existing.containerSpecification =
       containerSpecification !== undefined ? containerSpecification : existing.containerSpecification;
     existing.incoterms = incoterms !== undefined ? incoterms : (existing.incoterms || 'CIF');
@@ -348,6 +379,9 @@ const updateInvoice = async (req, res) => {
     existing.grandTotal = grandTotal;
     existing.amountInWords = words;
     existing.damagePolicy = damagePolicy !== undefined ? damagePolicy : existing.damagePolicy;
+    if (termsAndConditions !== undefined) {
+      existing.termsAndConditions = Array.isArray(termsAndConditions) ? termsAndConditions : [];
+    }
     existing.paymentRoutingNote =
       paymentRoutingNote !== undefined ? paymentRoutingNote : existing.paymentRoutingNote;
     existing.bankDetails = bankDetails || existing.bankDetails;

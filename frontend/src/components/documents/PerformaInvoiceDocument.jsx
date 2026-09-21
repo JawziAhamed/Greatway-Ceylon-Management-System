@@ -1,5 +1,6 @@
 import React from 'react';
 import logoImg from '../../assets/logo.png';
+import watermarkLogoImg from '../../assets/watermark_logo.png';
 import { formatCurrency, formatDate } from './QuotationDocument';
 import { resolveMediaUrl } from '../../api/axiosClient';
 import { formatIncotermDisplay, getIncotermCode } from '../../utils/incoterms';
@@ -48,10 +49,23 @@ export default function PerformaInvoiceDocument({ invoice, settings = {} }) {
       0
     );
 
+  const termsList =
+    invoice.termsAndConditions && invoice.termsAndConditions.length > 0
+      ? invoice.termsAndConditions
+      : invoice.damagePolicy
+      ? invoice.damagePolicy.split('\n').filter((l) => l.trim())
+      : [
+          'Damages should be reported within 10 days of the arrival of goods at the destination port (Refer to attachment 01 for general terms and conditions)',
+          '*Greatway Ceylon will not accept liability for any damages if,- The goods are not cleared within 48 hours of arrival at the designated port of destination.- The reports of three temperature gauges are not submitted along with the temperature gauges,- The damage report is provided beyond 10 days from the arrival of the shipment.',
+          '* Greatway Ceylon will not be responsible for any damage sustained during the voyage, customer handling/ unloading process, or due to the lack of required temperature being maintained and improper cold chain management. No damages shall be accepted if the temperature gauges are not returned to our representatives when the shipment arrives.',
+          '*Acceptance of damages shall be at the sole discretion of Greatway Ceylon (Pvt) Ltd.',
+          '*Any amount deducted for damages cannot be arbitrarily decided by Nuragro FZE. If any deduction is to be made, it must be decided with the explicit consent of Greatway Ceylon (Pvt) Ltd. Deductions made without such consent shall be considered void and deemed payable to Greatway Ceylon (Pvt) Ltd.',
+        ];
+
   return (
     <div className="bg-white text-gray-900 p-8 max-w-[820px] mx-auto text-[11px] leading-relaxed shadow-md print:shadow-none print:p-0 print:max-w-none">
       {/* Outer Enclosing Frame matching the prototype */}
-      <div className="border-[1.5px] border-black p-4">
+      <div className="relative border-[1.5px] border-black p-4">
         {/* Header Section */}
         <div className="flex justify-between items-start mb-3">
           <div className="w-5/12">
@@ -82,89 +96,108 @@ export default function PerformaInvoiceDocument({ invoice, settings = {} }) {
           </h1>
         </div>
 
-        {/* Customer & PI Details Meta Grid */}
+        {/* Customer, PI & Shipping Details Meta Grid */}
         <div className="border-x-[1.5px] border-b-[1.5px] border-black">
-          <div className="grid grid-cols-2 divide-x divide-black border-b border-black">
-            {/* Customer Details Box */}
-            <div className="p-2.5">
-              <div className="font-bold underline text-[10.5px] mb-1">
-                CUSTOMERS DETAILS:
-              </div>
-              <div className="font-bold text-[11px]">
-                {buyer.companyName || 'N/A'}
-              </div>
-              {buyer.address && (
-                <div className="whitespace-pre-line text-[10.5px] text-gray-800">
-                  {buyer.address}
+          <div className="grid grid-cols-2 divide-x divide-black">
+            {/* Left Box: Customer Details & PI Meta */}
+            <div className="p-2.5 flex flex-col justify-between space-y-2">
+              <div>
+                <div className="font-bold underline text-[10.5px] mb-1">
+                  CUSTOMERS DETAILS:
                 </div>
-              )}
-              {buyer.country && (
-                <div className="text-[10.5px] text-gray-800">{buyer.country}</div>
-              )}
-            </div>
+                <div className="font-bold text-[11px]">
+                  {buyer.companyName || 'N/A'}
+                </div>
+                {buyer.address && (
+                  <div className="whitespace-pre-line text-[10.5px] text-gray-800">
+                    {buyer.address}
+                  </div>
+                )}
+                {buyer.country && (
+                  <div className="text-[10.5px] text-gray-800">{buyer.country}</div>
+                )}
+              </div>
 
-            {/* PI Details Box */}
-            <div className="p-2.5 space-y-1 text-[10.5px]">
-              <div className="flex items-start">
-                <span className="font-bold w-[138px] shrink-0 whitespace-nowrap">PI NO:</span>
-                <span className="font-bold flex-1 min-w-0">{invoice.invoiceNumber}</span>
-              </div>
-              <div className="flex items-start">
-                <span className="font-bold w-[138px] shrink-0 whitespace-nowrap">PI DATE:</span>
-                <span className="flex-1 min-w-0">{formatDate(invoice.invoiceDate)}</span>
-              </div>
-              <div className="flex items-start">
-                <span className="font-bold w-[138px] shrink-0 whitespace-nowrap">PAYMENT TERMS:</span>
-                <span className="text-[10px] leading-snug flex-1 min-w-0">{invoice.paymentTerms}</span>
-              </div>
-              <div className="flex items-start">
-                <span className="font-bold w-[138px] shrink-0 whitespace-nowrap">SHIPMENT REFERENCE:</span>
-                <span className="flex-1 min-w-0">{invoice.shipmentReference}</span>
-              </div>
-              <div className="flex items-start">
-                <span className="font-bold w-[138px] shrink-0 whitespace-nowrap">INCOTERMS:</span>
-                <span className="font-bold text-gray-900 flex-1 min-w-0 leading-tight">
-                  {formatIncotermDisplay(invoice.incoterms, invoice.portOfDischarge, invoice.portOfLoading)}
-                </span>
-              </div>
-              {invoice.status && (
-                <div className="flex items-center">
-                  <span className="font-bold w-[138px] shrink-0 whitespace-nowrap">STATUS:</span>
-                  <span className="font-bold uppercase text-[10px] tracking-wider text-[#237837] flex-1 min-w-0">
-                    {invoice.status}
+              <div className="pt-2 border-t border-gray-300 space-y-0.5 text-[10.5px]">
+                <div className="flex items-start">
+                  <span className="font-bold w-[125px] shrink-0 whitespace-nowrap">PI NO:</span>
+                  <span className="font-bold flex-1 min-w-0">{invoice.invoiceNumber}</span>
+                </div>
+                <div className="flex items-start">
+                  <span className="font-bold w-[125px] shrink-0 whitespace-nowrap">PI DATE:</span>
+                  <span className="flex-1 min-w-0">{formatDate(invoice.invoiceDate)}</span>
+                </div>
+                <div className="flex items-start">
+                  <span className="font-bold w-[125px] shrink-0 whitespace-nowrap">PAYMENT TERMS:</span>
+                  <span className="text-[10px] leading-snug flex-1 min-w-0">{invoice.paymentTerms}</span>
+                </div>
+                <div className="flex items-start">
+                  <span className="font-bold w-[125px] shrink-0 whitespace-nowrap">SHIPMENT REFERENCE:</span>
+                  <span className="flex-1 min-w-0">{invoice.shipmentReference}</span>
+                </div>
+                <div className="flex items-start">
+                  <span className="font-bold w-[125px] shrink-0 whitespace-nowrap">INCOTERMS:</span>
+                  <span className="font-bold text-gray-900 flex-1 min-w-0 leading-tight">
+                    {getIncotermCode(invoice.incoterms) || invoice.incoterms || 'CIF'}
                   </span>
                 </div>
-              )}
+                {invoice.status && (
+                  <div className="flex items-center">
+                    <span className="font-bold w-[125px] shrink-0 whitespace-nowrap">STATUS:</span>
+                    <span className="font-bold uppercase text-[10px] tracking-wider text-[#237837] flex-1 min-w-0">
+                      {invoice.status}
+                    </span>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Right Box: Shipping Details Matching Image 2 */}
+            <div className="p-2.5 flex flex-col justify-start text-[10.5px]">
+              <div className="space-y-1">
+                <div className="flex justify-end items-baseline">
+                  <span className="font-bold text-gray-900 mr-2 whitespace-nowrap">Vessel:</span>
+                  <span className="font-normal text-gray-900 w-44 text-left">{invoice.vessel || invoice.shippedPer || 'MSC PRELUDE V'}</span>
+                </div>
+                <div className="flex justify-end items-baseline">
+                  <span className="font-bold text-gray-900 mr-2 whitespace-nowrap">Voyage Number:</span>
+                  <span className="font-normal text-gray-900 w-44 text-left">{invoice.voyageNo || 'IW626R'}</span>
+                </div>
+                <div className="flex justify-end items-baseline">
+                  <span className="font-bold text-gray-900 mr-2 whitespace-nowrap">Container No:</span>
+                  <span className="font-normal text-gray-900 w-44 text-left">{invoice.containerNo || invoice.containerSpecification || 'TBC'}</span>
+                </div>
+                <div className="flex justify-end items-baseline">
+                  <span className="font-bold text-gray-900 mr-2 whitespace-nowrap">Seal Number:</span>
+                  <span className="font-normal text-gray-900 w-44 text-left">{invoice.sealNumber || 'TBC'}</span>
+                </div>
+                <div className="flex justify-end items-baseline">
+                  <span className="font-bold text-gray-900 mr-2 whitespace-nowrap">POL:</span>
+                  <span className="font-normal text-gray-900 w-44 text-left">{invoice.portOfLoading || 'DURBAN'}</span>
+                </div>
+                <div className="flex justify-end items-baseline">
+                  <span className="font-bold text-gray-900 mr-2 whitespace-nowrap">POD:</span>
+                  <span className="font-normal text-gray-900 w-44 text-left">{invoice.portOfDischarge || 'KHOR AL FAKKAN'}</span>
+                </div>
+                <div className="flex justify-end items-baseline">
+                  <span className="font-bold text-gray-900 mr-2 whitespace-nowrap">Final Destination:</span>
+                  <span className="font-normal text-gray-900 w-44 text-left">{invoice.finalDestination || invoice.portOfDischarge || 'KHOR AL FAKKAN'}</span>
+                </div>
+                <div className="flex justify-end items-baseline">
+                  <span className="font-bold text-gray-900 mr-2 whitespace-nowrap">ETD:</span>
+                  <span className="font-normal text-gray-900 w-44 text-left">{invoice.etd || '29/07/2026'}</span>
+                </div>
+                <div className="flex justify-end items-baseline">
+                  <span className="font-bold text-gray-900 mr-2 whitespace-nowrap">ETA:</span>
+                  <span className="font-normal text-gray-900 w-44 text-left">{invoice.eta || '12/08/2026'}</span>
+                </div>
+                <div className="flex justify-end items-baseline">
+                  <span className="font-bold text-gray-900 mr-2 whitespace-nowrap">Stack :</span>
+                  <span className="font-normal text-gray-900 w-44 text-left">{invoice.stack || '25/07 to 26/07 06:00 P'}</span>
+                </div>
+              </div>
             </div>
           </div>
-
-          {/* Shipped Per & Voyage No Row */}
-          <div className="grid grid-cols-2 divide-x divide-black border-b border-black text-[10.5px]">
-            <div className="p-2">
-              <strong>SHIPPED PER</strong> : {invoice.shippedPer || 'Maersk , Salalah, Oman (CY)'}
-            </div>
-            <div className="p-2">
-              <strong>VOYAGE NO.</strong> : {invoice.voyageNo || 'OEL VARUN 639N'}
-            </div>
-          </div>
-
-          {/* Port of Loading & Discharge Row */}
-          <div className="grid grid-cols-2 divide-x divide-black text-[10.5px]">
-            <div className="p-2">
-              <div className="font-bold underline mb-0.5">PORT OF LOADING</div>
-              <div>{invoice.portOfLoading || 'COLOMBO PORT SRI LANKA'}</div>
-            </div>
-            <div className="p-2">
-              <div className="font-bold underline mb-0.5">PORT OF DISCHARGE</div>
-              <div>{invoice.portOfDischarge || 'Salalah, Oman (CY)'}</div>
-            </div>
-          </div>
-
-          {invoice.containerSpecification && (
-            <div className="border-t border-black p-2 text-[10.5px]">
-              <strong>CONTAINER SPECIFICATION</strong> : {invoice.containerSpecification}
-            </div>
-          )}
         </div>
 
         {/* Items Table matching Quotation view */}
@@ -252,9 +285,12 @@ export default function PerformaInvoiceDocument({ invoice, settings = {} }) {
           <div className="font-bold underline text-[10.5px] mb-1">
             TERMS & CONDITIONS
           </div>
-          <div className="text-gray-800">
-            {invoice.damagePolicy ||
-              'Damage Policy: If any of the Goods are found to be damaged upon receipt, the Purchaser shall notify the Supplier in writing, providing evidence such as photographs and videos, within seven (3) days of receipt of the Good (terms and conditions apply).'}
+          <div className="text-gray-800 space-y-1">
+            {termsList.map((point, idx) => (
+              <div key={idx} className="leading-snug">
+                {point}
+              </div>
+            ))}
           </div>
         </div>
 
@@ -305,6 +341,15 @@ export default function PerformaInvoiceDocument({ invoice, settings = {} }) {
             <div className="border-b border-black h-10 mb-1"></div>
             <div className="text-[10.5px] font-medium">Authorized Signatory</div>
           </div>
+        </div>
+
+        {/* Transparent Watermark Logo at Right Bottom */}
+        <div className="absolute right-4 bottom-3 pointer-events-none opacity-20 select-none">
+          <img
+            src={watermarkLogoImg}
+            alt="Greatway Mark"
+            className="w-16 h-16 object-contain"
+          />
         </div>
       </div>
     </div>

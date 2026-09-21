@@ -1,5 +1,6 @@
 import React from 'react';
 import logoImg from '../../assets/logo.png';
+import watermarkLogoImg from '../../assets/watermark_logo.png';
 import { resolveMediaUrl } from '../../api/axiosClient';
 import { formatIncotermDisplay } from '../../utils/incoterms';
 
@@ -38,7 +39,7 @@ export default function QuotationDocument({ quotation, settings = {} }) {
       : safeSettings.quotationSettings?.defaultSpecificTerms || [];
 
   return (
-    <div className="bg-white text-gray-900 p-8 max-w-[820px] mx-auto text-[11px] leading-relaxed shadow-md print:shadow-none print:p-0 print:max-w-none">
+    <div className="relative bg-white text-gray-900 p-8 max-w-[820px] mx-auto text-[11px] leading-relaxed shadow-md print:shadow-none print:p-0 print:max-w-none">
       {/* Header Row */}
       <div className="flex justify-between items-start mb-3">
         <div className="w-7/12">
@@ -116,6 +117,10 @@ export default function QuotationDocument({ quotation, settings = {} }) {
               <tr>
                 <td className="font-bold text-gray-700 pr-3 py-0.5">QUOTATION NO</td>
                 <td className="font-bold py-0.5">: {quotation.quotationNumber}</td>
+              </tr>
+              <tr>
+                <td className="font-bold text-gray-700 pr-3 py-0.5">SALE TYPE</td>
+                <td className="py-0.5">: <span className="font-bold text-[#14663e]">{quotation.saleType || 'Own Sale'}</span></td>
               </tr>
               {quotation.validUntil && (
                 <tr>
@@ -264,6 +269,15 @@ export default function QuotationDocument({ quotation, settings = {} }) {
             </tr>
           </tbody>
         </table>
+      </div>
+
+      {/* Transparent Watermark Logo at Right Bottom */}
+      <div className="absolute right-4 bottom-4 pointer-events-none opacity-20 select-none">
+        <img
+          src={watermarkLogoImg}
+          alt="Greatway Mark"
+          className="w-16 h-16 object-contain"
+        />
       </div>
     </div>
   );
