@@ -184,7 +184,7 @@ export default function QuotationDocument({ quotation, settings = {} }) {
           )}
 
           <tr className="font-bold bg-white">
-            <td colSpan={6} className="border border-gray-400 py-1.5 px-2 text-right">
+            <td colSpan={6} className="border border-gray-400 py-1.5 px-3 text-left font-bold">
               Total
             </td>
             <td className="border border-gray-400 py-1.5 px-1 text-right">

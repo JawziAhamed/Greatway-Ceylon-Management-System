@@ -227,12 +227,9 @@ export default function PerformaInvoiceDocument({ invoice, settings = {} }) {
             )}
 
             <tr className="font-bold bg-white">
-              <td className="border border-gray-400 py-1.5 px-1"></td>
-              <td className="border border-gray-400 py-1.5 px-1.5 text-left font-bold">Total</td>
-              <td className="border border-gray-400 py-1.5 px-2"></td>
-              <td className="border border-gray-400 py-1.5 px-1.5"></td>
-              <td className="border border-gray-400 py-1.5 px-1.5"></td>
-              <td className="border border-gray-400 py-1.5 px-1.5"></td>
+              <td colSpan={6} className="border border-gray-400 py-1.5 px-3 text-left font-bold">
+                Total
+              </td>
               <td className="border border-gray-400 py-1.5 px-1.5 text-right font-bold">
                 {formatCurrency(totalCartons)}
               </td>

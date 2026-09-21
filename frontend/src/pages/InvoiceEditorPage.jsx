@@ -181,18 +181,20 @@ export default function InvoiceEditorPage() {
     const row = { ...updated[index], [field]: value };
 
     if (field === 'packages' || field === 'quantityCartons') {
-      const pkgs = Number(value) || 0;
-      row.packages = pkgs;
-      row.quantityCartons = pkgs;
+      row.packages = value;
+      row.quantityCartons = value;
+      const pkgs = value === '' ? 0 : (Number(value) || 0);
       const rate = Number(row.boxRate) || 0;
       row.cifValue = Number((pkgs * rate).toFixed(2));
       row.lineTotal = row.cifValue;
     } else if (field === 'boxRate') {
-      const rate = Number(value) || 0;
-      row.boxRate = rate;
+      row.boxRate = value;
+      const rate = value === '' ? 0 : (Number(value) || 0);
       const pkgs = Number(row.packages !== undefined ? row.packages : row.quantityCartons) || 0;
       row.cifValue = Number((pkgs * rate).toFixed(2));
       row.lineTotal = row.cifValue;
+    } else if (field === 'ratePerNutKg') {
+      row.ratePerNutKg = value;
     } else if (field === 'perBoxWeight' || field === 'netWeightPerBox') {
       row.perBoxWeight = value;
       row.netWeightPerBox = value;
@@ -311,7 +313,15 @@ export default function InvoiceEditorPage() {
         portOfDischarge,
         containerSpecification,
         incoterms: getIncotermCode(incoterms),
-        items,
+        items: items.map((it) => ({
+          ...it,
+          quantityCartons: it.quantityCartons === '' ? 0 : Number(it.quantityCartons) || 0,
+          packages: it.packages === '' ? 0 : Number(it.packages) || 0,
+          ratePerNutKg: it.ratePerNutKg === '' ? 0 : Number(it.ratePerNutKg) || 0,
+          boxRate: it.boxRate === '' ? 0 : Number(it.boxRate) || 0,
+          lineTotal: it.lineTotal === '' ? 0 : Number(it.lineTotal) || 0,
+          cifValue: it.cifValue === '' ? 0 : Number(it.cifValue) || 0,
+        })),
         freightDescription,
         freightCharges: Number(freightCharges) || 0,
         otherCharges: Number(otherCharges) || 0,
@@ -739,8 +749,10 @@ export default function InvoiceEditorPage() {
                         <label className="text-[10px] text-gray-500 font-medium">Quantity Cartons</label>
                         <input
                           type="number"
-                          value={item.packages !== undefined ? item.packages : (item.quantityCartons || '')}
-                          onChange={(e) => handleItemChange(idx, 'packages', e.target.value)}
+                          value={item.quantityCartons !== undefined ? item.quantityCartons : (item.packages !== undefined ? item.packages : '')}
+                          onChange={(e) => handleItemChange(idx, 'quantityCartons', e.target.value)}
+                          onFocus={(e) => e.target.select()}
+                          onClick={(e) => e.target.select()}
                           className="w-full px-2 py-1.5 border border-gray-300 rounded-lg text-xs font-semibold"
                         />
                       </div>
@@ -772,8 +784,10 @@ export default function InvoiceEditorPage() {
                         <input
                           type="number"
                           step="0.01"
-                          value={item.ratePerNutKg}
+                          value={item.ratePerNutKg !== undefined ? item.ratePerNutKg : ''}
                           onChange={(e) => handleItemChange(idx, 'ratePerNutKg', e.target.value)}
+                          onFocus={(e) => e.target.select()}
+                          onClick={(e) => e.target.select()}
                           className="w-full px-2 py-1.5 border border-gray-300 rounded-lg text-xs"
                         />
                       </div>
@@ -783,8 +797,10 @@ export default function InvoiceEditorPage() {
                         <input
                           type="number"
                           step="0.01"
-                          value={item.boxRate}
+                          value={item.boxRate !== undefined ? item.boxRate : ''}
                           onChange={(e) => handleItemChange(idx, 'boxRate', e.target.value)}
+                          onFocus={(e) => e.target.select()}
+                          onClick={(e) => e.target.select()}
                           className="w-full px-2 py-1.5 border border-gray-300 rounded-lg text-xs font-semibold"
                         />
                       </div>
@@ -821,8 +837,10 @@ export default function InvoiceEditorPage() {
                     <input
                       type="number"
                       step="0.01"
-                      value={freightCharges}
-                      onChange={(e) => setFreightCharges(Number(e.target.value))}
+                      value={freightCharges !== undefined ? freightCharges : ''}
+                      onChange={(e) => setFreightCharges(e.target.value === '' ? '' : Number(e.target.value))}
+                      onFocus={(e) => e.target.select()}
+                      onClick={(e) => e.target.select()}
                       className="w-full px-3 py-1.5 border border-gray-300 rounded-xl text-xs font-semibold"
                     />
                   </div>
@@ -956,8 +974,10 @@ export default function InvoiceEditorPage() {
                     <input
                       type="number"
                       step="0.01"
-                      value={discount}
-                      onChange={(e) => setDiscount(Number(e.target.value))}
+                      value={discount !== undefined ? discount : ''}
+                      onChange={(e) => setDiscount(e.target.value === '' ? '' : Number(e.target.value))}
+                      onFocus={(e) => e.target.select()}
+                      onClick={(e) => e.target.select()}
                       className="w-24 px-2 py-1 border border-gray-300 rounded text-right text-xs"
                     />
                   </div>
@@ -967,8 +987,10 @@ export default function InvoiceEditorPage() {
                     <input
                       type="number"
                       step="0.01"
-                      value={tax}
-                      onChange={(e) => setTax(Number(e.target.value))}
+                      value={tax !== undefined ? tax : ''}
+                      onChange={(e) => setTax(e.target.value === '' ? '' : Number(e.target.value))}
+                      onFocus={(e) => e.target.select()}
+                      onClick={(e) => e.target.select()}
                       className="w-24 px-2 py-1 border border-gray-300 rounded text-right text-xs"
                     />
                   </div>

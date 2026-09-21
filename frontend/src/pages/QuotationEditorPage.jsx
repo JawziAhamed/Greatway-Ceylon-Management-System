@@ -159,8 +159,8 @@ export default function QuotationEditorPage() {
     const row = { ...updated[index], [field]: value };
 
     if (field === 'quantityCartons' || field === 'boxRate') {
-      const qty = field === 'quantityCartons' ? Number(value) || 0 : Number(row.quantityCartons) || 0;
-      const rate = field === 'boxRate' ? Number(value) || 0 : Number(row.boxRate) || 0;
+      const qty = field === 'quantityCartons' ? (value === '' ? 0 : Number(value) || 0) : (row.quantityCartons === '' ? 0 : Number(row.quantityCartons) || 0);
+      const rate = field === 'boxRate' ? (value === '' ? 0 : Number(value) || 0) : (row.boxRate === '' ? 0 : Number(row.boxRate) || 0);
       row.lineTotal = Number((qty * rate).toFixed(2));
     }
 
@@ -246,7 +246,13 @@ export default function QuotationEditorPage() {
         currency,
         vesselDetails,
         departureDateText,
-        items,
+        items: items.map((it) => ({
+          ...it,
+          quantityCartons: it.quantityCartons === '' ? 0 : Number(it.quantityCartons) || 0,
+          ratePerNutKg: it.ratePerNutKg === '' ? 0 : Number(it.ratePerNutKg) || 0,
+          boxRate: it.boxRate === '' ? 0 : Number(it.boxRate) || 0,
+          lineTotal: it.lineTotal === '' ? 0 : Number(it.lineTotal) || 0,
+        })),
         freightDescription,
         freightCost: Number(freightCost) || 0,
         discount: Number(discount) || 0,
@@ -659,8 +665,10 @@ export default function QuotationEditorPage() {
                         <input
                           type="number"
                           step="0.01"
-                          value={item.ratePerNutKg}
+                          value={item.ratePerNutKg !== undefined ? item.ratePerNutKg : ''}
                           onChange={(e) => handleItemChange(idx, 'ratePerNutKg', e.target.value)}
+                          onFocus={(e) => e.target.select()}
+                          onClick={(e) => e.target.select()}
                           className="w-full px-2 py-1.5 border border-gray-300 rounded-lg text-xs"
                         />
                       </div>
@@ -670,8 +678,10 @@ export default function QuotationEditorPage() {
                         <input
                           type="number"
                           step="0.01"
-                          value={item.boxRate}
+                          value={item.boxRate !== undefined ? item.boxRate : ''}
                           onChange={(e) => handleItemChange(idx, 'boxRate', e.target.value)}
+                          onFocus={(e) => e.target.select()}
+                          onClick={(e) => e.target.select()}
                           className="w-full px-2 py-1.5 border border-gray-300 rounded-lg text-xs font-semibold"
                         />
                       </div>
@@ -680,8 +690,10 @@ export default function QuotationEditorPage() {
                         <label className="text-[10px] text-gray-500 font-medium">Cartons (Qty)</label>
                         <input
                           type="number"
-                          value={item.quantityCartons}
+                          value={item.quantityCartons !== undefined ? item.quantityCartons : ''}
                           onChange={(e) => handleItemChange(idx, 'quantityCartons', e.target.value)}
+                          onFocus={(e) => e.target.select()}
+                          onClick={(e) => e.target.select()}
                           className="w-full px-2 py-1.5 border border-gray-300 rounded-lg text-xs font-semibold"
                         />
                       </div>
@@ -716,8 +728,10 @@ export default function QuotationEditorPage() {
                     <input
                       type="number"
                       step="0.01"
-                      value={freightCost}
-                      onChange={(e) => setFreightCost(Number(e.target.value))}
+                      value={freightCost !== undefined ? freightCost : ''}
+                      onChange={(e) => setFreightCost(e.target.value === '' ? '' : Number(e.target.value))}
+                      onFocus={(e) => e.target.select()}
+                      onClick={(e) => e.target.select()}
                       className="w-full px-3 py-1.5 border border-gray-300 rounded-xl text-xs font-semibold"
                     />
                   </div>
@@ -787,8 +801,10 @@ export default function QuotationEditorPage() {
                     <input
                       type="number"
                       step="0.01"
-                      value={discount}
-                      onChange={(e) => setDiscount(Number(e.target.value))}
+                      value={discount !== undefined ? discount : ''}
+                      onChange={(e) => setDiscount(e.target.value === '' ? '' : Number(e.target.value))}
+                      onFocus={(e) => e.target.select()}
+                      onClick={(e) => e.target.select()}
                       className="w-24 px-2 py-1 border border-gray-300 rounded text-right text-xs"
                     />
                   </div>
@@ -798,8 +814,10 @@ export default function QuotationEditorPage() {
                     <input
                       type="number"
                       step="0.01"
-                      value={tax}
-                      onChange={(e) => setTax(Number(e.target.value))}
+                      value={tax !== undefined ? tax : ''}
+                      onChange={(e) => setTax(e.target.value === '' ? '' : Number(e.target.value))}
+                      onFocus={(e) => e.target.select()}
+                      onClick={(e) => e.target.select()}
                       className="w-24 px-2 py-1 border border-gray-300 rounded text-right text-xs"
                     />
                   </div>

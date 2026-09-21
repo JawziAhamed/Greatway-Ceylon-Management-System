@@ -329,9 +329,9 @@ const generateQuotationHTML = (quotation, settings, logoBase64) => {
         ${itemsRows}
         ${freightRow}
         <tr class="total-row">
-          <td colspan="6" style="text-align: right; border: 1px solid #777;">Total</td>
-          <td style="text-align: right; border: 1px solid #777;">${formatAmount(quotation.totalCartons)}</td>
-          <td style="text-align: right; border: 1px solid #777;">$ ${formatAmount(quotation.grandTotal)}</td>
+          <td colspan="6" style="text-align: left; font-weight: bold; padding: 5px 8px; border: 1px solid #777;">Total</td>
+          <td style="text-align: right; border: 1px solid #777; font-weight: bold; padding: 5px 6px;">${formatAmount(quotation.totalCartons)}</td>
+          <td style="text-align: right; border: 1px solid #777; font-weight: bold; padding: 5px 6px;">$ ${formatAmount(quotation.grandTotal)}</td>
         </tr>
       </tbody>
     </table>
@@ -729,14 +729,9 @@ const generateInvoiceHTML = (invoice, settings, logoBase64) => {
         ${itemsRows}
         ${freightRow}
         <tr class="total-row">
-          <td style="border: 1px solid #777;"></td>
-          <td style="border: 1px solid #777; text-align: left; font-weight: bold; padding: 4px 6px;">Total</td>
-          <td style="border: 1px solid #777;"></td>
-          <td style="border: 1px solid #777;"></td>
-          <td style="border: 1px solid #777;"></td>
-          <td style="border: 1px solid #777;"></td>
-          <td style="border: 1px solid #777; text-align: right; font-weight: bold; padding: 4px 6px;">${formatAmount(totalCartons)}</td>
-          <td style="border: 1px solid #777; text-align: right; font-weight: bold; padding: 4px 6px;">$ ${formatAmount(invoice.grandTotal || invoice.totalAmount || 0)}</td>
+          <td colspan="6" style="border: 1px solid #777; text-align: left; font-weight: bold; padding: 5px 8px;">Total</td>
+          <td style="border: 1px solid #777; text-align: right; font-weight: bold; padding: 5px 6px;">${formatAmount(totalCartons)}</td>
+          <td style="border: 1px solid #777; text-align: right; font-weight: bold; padding: 5px 6px;">$ ${formatAmount(invoice.grandTotal || invoice.totalAmount || 0)}</td>
         </tr>
       </tbody>
     </table>
