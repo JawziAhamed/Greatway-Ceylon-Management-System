@@ -52,12 +52,16 @@ export default function InvoiceEditorPage() {
   // Items State
   const [items, setItems] = useState([
     {
+      itemCode: 'KC',
       packages: 1900,
-      description: 'FRESH KING COCONUT',
+      quantityCartons: 1900,
+      description: 'King Coconut',
       perBoxWeight: '6 nuts',
+      netWeightPerBox: '6 nuts',
       ratePerNutKg: 1.27,
       boxRate: 7.60,
       cifValue: 14440.00,
+      lineTotal: 14440.00,
     },
   ]);
 
@@ -176,10 +180,22 @@ export default function InvoiceEditorPage() {
     const updated = [...items];
     const row = { ...updated[index], [field]: value };
 
-    if (field === 'packages' || field === 'boxRate') {
-      const pkgs = field === 'packages' ? Number(value) || 0 : Number(row.packages) || 0;
-      const rate = field === 'boxRate' ? Number(value) || 0 : Number(row.boxRate) || 0;
+    if (field === 'packages' || field === 'quantityCartons') {
+      const pkgs = Number(value) || 0;
+      row.packages = pkgs;
+      row.quantityCartons = pkgs;
+      const rate = Number(row.boxRate) || 0;
       row.cifValue = Number((pkgs * rate).toFixed(2));
+      row.lineTotal = row.cifValue;
+    } else if (field === 'boxRate') {
+      const rate = Number(value) || 0;
+      row.boxRate = rate;
+      const pkgs = Number(row.packages !== undefined ? row.packages : row.quantityCartons) || 0;
+      row.cifValue = Number((pkgs * rate).toFixed(2));
+      row.lineTotal = row.cifValue;
+    } else if (field === 'perBoxWeight' || field === 'netWeightPerBox') {
+      row.perBoxWeight = value;
+      row.netWeightPerBox = value;
     }
 
     updated[index] = row;
@@ -191,16 +207,21 @@ export default function InvoiceEditorPage() {
     if (!prod) return;
 
     const updated = [...items];
-    const pkgs = Number(updated[index].packages) || 100;
+    const pkgs = Number(updated[index].packages !== undefined ? updated[index].packages : updated[index].quantityCartons) || 100;
     const boxRate = prod.defaultBoxRate || 0;
 
     updated[index] = {
       ...updated[index],
-      description: `FRESH ${prod.name.toUpperCase()}`,
+      itemCode: prod.code || '',
+      description: prod.name,
       perBoxWeight: prod.defaultWeightPerBox || '',
+      netWeightPerBox: prod.defaultWeightPerBox || '',
       ratePerNutKg: prod.defaultRatePerNutKg || 0,
       boxRate: boxRate,
+      packages: pkgs,
+      quantityCartons: pkgs,
       cifValue: Number((pkgs * boxRate).toFixed(2)),
+      lineTotal: Number((pkgs * boxRate).toFixed(2)),
     };
     setItems(updated);
   };
@@ -209,12 +230,16 @@ export default function InvoiceEditorPage() {
     setItems([
       ...items,
       {
+        itemCode: '',
         packages: 100,
+        quantityCartons: 100,
         description: '',
         perBoxWeight: '5.5 kg',
+        netWeightPerBox: '5.5 kg',
         ratePerNutKg: 0,
         boxRate: 0,
         cifValue: 0,
+        lineTotal: 0,
       },
     ]);
   };
@@ -698,12 +723,23 @@ export default function InvoiceEditorPage() {
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-5 gap-2">
+                    <div className="grid grid-cols-1 sm:grid-cols-6 gap-2">
                       <div className="sm:col-span-1">
-                        <label className="text-[10px] text-gray-500 font-medium">Packages (Qty)</label>
+                        <label className="text-[10px] text-gray-500 font-medium">Item Code</label>
+                        <input
+                          type="text"
+                          value={item.itemCode || ''}
+                          onChange={(e) => handleItemChange(idx, 'itemCode', e.target.value)}
+                          placeholder="e.g. KC"
+                          className="w-full px-2 py-1.5 border border-gray-300 rounded-lg text-xs font-semibold"
+                        />
+                      </div>
+
+                      <div className="sm:col-span-1">
+                        <label className="text-[10px] text-gray-500 font-medium">Quantity Cartons</label>
                         <input
                           type="number"
-                          value={item.packages}
+                          value={item.packages !== undefined ? item.packages : (item.quantityCartons || '')}
                           onChange={(e) => handleItemChange(idx, 'packages', e.target.value)}
                           className="w-full px-2 py-1.5 border border-gray-300 rounded-lg text-xs font-semibold"
                         />
@@ -715,16 +751,16 @@ export default function InvoiceEditorPage() {
                           type="text"
                           value={item.description}
                           onChange={(e) => handleItemChange(idx, 'description', e.target.value)}
-                          placeholder="FRESH KING COCONUT"
+                          placeholder="King Coconut"
                           className="w-full px-2 py-1.5 border border-gray-300 rounded-lg text-xs font-medium"
                         />
                       </div>
 
                       <div className="sm:col-span-1">
-                        <label className="text-[10px] text-gray-500 font-medium">Per Box / Weight</label>
+                        <label className="text-[10px] text-gray-500 font-medium">Net Weight/Box</label>
                         <input
                           type="text"
-                          value={item.perBoxWeight}
+                          value={item.perBoxWeight || item.netWeightPerBox || ''}
                           onChange={(e) => handleItemChange(idx, 'perBoxWeight', e.target.value)}
                           placeholder="6 nuts / 5.5 kg"
                           className="w-full px-2 py-1.5 border border-gray-300 rounded-lg text-xs"
@@ -753,10 +789,10 @@ export default function InvoiceEditorPage() {
                         />
                       </div>
 
-                      <div className="sm:col-span-3 text-right flex flex-col justify-end">
+                      <div className="sm:col-span-4 text-right flex flex-col justify-end">
                         <div className="text-[10px] text-gray-500">{getIncotermCode(incoterms)} Value:</div>
                         <div className="text-sm font-bold text-gray-900">
-                          $ {formatCurrency(item.cifValue)}
+                          $ {formatCurrency(item.cifValue !== undefined ? item.cifValue : item.lineTotal)}
                         </div>
                       </div>
                     </div>

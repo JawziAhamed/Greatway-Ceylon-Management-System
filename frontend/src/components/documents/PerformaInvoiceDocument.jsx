@@ -4,15 +4,49 @@ import { formatCurrency, formatDate } from './QuotationDocument';
 import { resolveMediaUrl } from '../../api/axiosClient';
 import { formatIncotermDisplay, getIncotermCode } from '../../utils/incoterms';
 
+const getItemCode = (item) => {
+  if (item.itemCode) return item.itemCode;
+  if (item.code) return item.code;
+  if (item.name && item.name.length <= 6 && !item.name.includes(' ')) return item.name;
+  const desc = (item.description || '').toLowerCase();
+  if (desc.includes('king coconut')) return 'KC';
+  if (desc.includes('red lady papaya') || desc.includes('red papaya')) return 'RP';
+  if (desc.includes('curry papaya') || desc.includes('green papaya')) return 'CP/GP';
+  if (desc.includes('tapioca') || desc.includes('kappa')) return 'Kappa';
+  if (desc.includes('cavendish banana') || desc.includes('banana')) return 'CB';
+  if (desc.includes('pineapple')) return 'PA';
+  if (desc.includes('guava')) return 'GV';
+  if (desc.includes('soursop')) return 'SS';
+  if (desc.includes('passion fruit')) return 'PF';
+  return '';
+};
+
+const getCurrencySymbol = (curr) => {
+  if (curr === 'EUR') return '€';
+  if (curr === 'GBP') return '£';
+  if (curr === 'AED') return 'AED';
+  if (curr === 'LKR') return 'Rs';
+  return '$';
+};
+
 export default function PerformaInvoiceDocument({ invoice, settings = {} }) {
   if (!invoice) return null;
 
-  const buyer = invoice.buyerSnapshot || invoice.customer || {};
-  const companyName = settings.companyName || 'GREATWAY CEYLON (PVT) LTD';
-  const companyAddress = settings.address || 'No. 76/A, Rathamba, Ambagasdowa, Sri Lanka - 90300';
-  const email = settings.email || 'info@greatwayceylon.com';
-  const taxNo = settings.taxNumber || '103406048 - 7000';
+  const safeSettings = settings || {};
+  const buyer = invoice.buyerSnapshot || (typeof invoice.customer === 'object' ? invoice.customer : null) || {};
+  const companyName = safeSettings.companyName || 'GREATWAY CEYLON (PVT) LTD';
+  const companyAddress = safeSettings.address || 'No. 76/A, Rathamba, Ambagasdowa, Sri Lanka - 90300';
+  const email = safeSettings.email || 'info@greatwayceylon.com';
+  const taxNo = safeSettings.taxNumber || '103406048 - 7000';
   const bank = invoice.bankDetails || {};
+  const currSym = getCurrencySymbol(invoice.currency);
+  const totalCartons =
+    invoice.totalCartons ||
+    (invoice.items || []).reduce(
+      (sum, it) =>
+        sum + (Number(it.quantityCartons !== undefined ? it.quantityCartons : it.packages) || 0),
+      0
+    );
 
   return (
     <div className="bg-white text-gray-900 p-8 max-w-[820px] mx-auto text-[11px] leading-relaxed shadow-md print:shadow-none print:p-0 print:max-w-none">
@@ -22,7 +56,7 @@ export default function PerformaInvoiceDocument({ invoice, settings = {} }) {
         <div className="flex justify-between items-start mb-3">
           <div className="w-5/12">
             <img
-              src={resolveMediaUrl(settings.logoUrl) || logoImg}
+              src={resolveMediaUrl(safeSettings.logoUrl) || logoImg}
               alt="Greatway Ceylon"
               className="max-h-16 max-w-[240px] object-contain"
             />
@@ -66,11 +100,6 @@ export default function PerformaInvoiceDocument({ invoice, settings = {} }) {
               )}
               {buyer.country && (
                 <div className="text-[10.5px] text-gray-800">{buyer.country}</div>
-              )}
-              {buyer.taxNumber && (
-                <div className="text-[10.5px] text-gray-800">
-                  TAX/VAT: {buyer.taxNumber}
-                </div>
               )}
             </div>
 
@@ -130,79 +159,85 @@ export default function PerformaInvoiceDocument({ invoice, settings = {} }) {
               <div>{invoice.portOfDischarge || 'Salalah, Oman (CY)'}</div>
             </div>
           </div>
+
+          {invoice.containerSpecification && (
+            <div className="border-t border-black p-2 text-[10.5px]">
+              <strong>CONTAINER SPECIFICATION</strong> : {invoice.containerSpecification}
+            </div>
+          )}
         </div>
 
-        {/* Items Table */}
-        <table className="w-full border-collapse border-x-[1.5px] border-b-[1.5px] border-black text-[10.5px]">
+        {/* Items Table matching Quotation view */}
+        <table className="w-full border-collapse my-2 text-[10.5px]">
           <thead>
-            <tr className="bg-white text-black divide-x divide-black border-b border-black">
-              <th className="py-2 px-1 text-center w-20 font-bold border-r border-black leading-tight">
-                NO.OF
-                <br />
-                PACKAGES
+            <tr className="bg-[#14663e] text-white">
+              <th className="border border-[#14663e] py-1.5 px-1 text-center w-7 font-bold">#</th>
+              <th className="border border-[#14663e] py-1.5 px-1.5 text-center w-16 font-bold">ITEM NAME</th>
+              <th className="border border-[#14663e] py-1.5 px-2 text-center font-bold">DESCRIPTION</th>
+              <th className="border border-[#14663e] py-1.5 px-1.5 text-center w-24 font-bold">Net Weight Per Box</th>
+              <th className="border border-[#14663e] py-1.5 px-1.5 text-center w-24 font-bold leading-tight">
+                Rate per Nut/ Kg in {invoice.currency || 'USD'}
               </th>
-              <th className="py-2 px-2 text-center font-bold border-r border-black">
-                DESCRIPTION
+              <th className="border border-[#14663e] py-1.5 px-1.5 text-center w-20 font-bold leading-tight">
+                Per Box Rate ({invoice.currency || 'USD'})
               </th>
-              <th className="py-2 px-1 text-center w-28 font-bold border-r border-black leading-tight">
-                PER BOX/
-                <br />
-                WEIGHT (KG)
+              <th className="border border-[#14663e] py-1.5 px-1.5 text-center w-20 font-bold leading-tight">
+                Quantity Cartons
               </th>
-              <th className="py-2 px-1 text-center w-28 font-bold border-r border-black leading-tight">
-                RATE PER NUT
-                <br />
-                KG ({invoice.currency || 'USD'})
-              </th>
-              <th className="py-2 px-1 text-center w-24 font-bold border-r border-black leading-tight">
-                BOX RATE
-                <br />
-                ({invoice.currency || 'USD'})
-              </th>
-              <th className="py-2 px-2 text-center w-28 font-bold leading-tight">
-                {getIncotermCode(invoice.incoterms)} VALUE
-                <br />
-                ({invoice.currency || 'USD'})
+              <th className="border border-[#14663e] py-1.5 px-2 text-center w-24 font-bold leading-tight">
+                Total Amount ({invoice.currency || 'USD'})
               </th>
             </tr>
           </thead>
           <tbody>
-            {invoice.containerSpecification && (
-              <tr className="border-b border-black bg-gray-50/70">
-                <td colSpan={6} className="py-1 px-2 font-bold text-[10px] tracking-wide">
-                  {invoice.containerSpecification}
-                </td>
-              </tr>
-            )}
-
             {(invoice.items || []).map((item, idx) => (
-              <tr key={idx} className="border-b border-black divide-x divide-black">
-                <td className="py-1 px-1 text-center font-medium">{item.packages}</td>
-                <td className="py-1 px-2 font-medium">{item.description}</td>
-                <td className="py-1 px-1 text-center">{item.perBoxWeight}</td>
-                <td className="py-1 px-1 text-right">{formatCurrency(item.ratePerNutKg)}</td>
-                <td className="py-1 px-1 text-right">{formatCurrency(item.boxRate)}</td>
-                <td className="py-1 px-2 text-right font-medium">{formatCurrency(item.cifValue)}</td>
+              <tr key={idx} className="hover:bg-gray-50/50">
+                <td className="border border-gray-400 py-1 px-1 text-center font-normal">{idx + 1}</td>
+                <td className="border border-gray-400 py-1 px-1.5 text-center font-normal">
+                  {getItemCode(item)}
+                </td>
+                <td className="border border-gray-400 py-1 px-2 text-left font-normal">{item.description}</td>
+                <td className="border border-gray-400 py-1 px-1.5 text-center font-normal">
+                  {item.netWeightPerBox || item.perBoxWeight || ''}
+                </td>
+                <td className="border border-gray-400 py-1 px-1.5 text-right font-normal">
+                  {currSym} {formatCurrency(item.ratePerNutKg)}
+                </td>
+                <td className="border border-gray-400 py-1 px-1.5 text-right font-normal">
+                  {currSym} {formatCurrency(item.boxRate)}
+                </td>
+                <td className="border border-gray-400 py-1 px-1.5 text-right font-normal">
+                  {formatCurrency(item.quantityCartons !== undefined ? item.quantityCartons : item.packages)}
+                </td>
+                <td className="border border-gray-400 py-1 px-2 text-right font-normal">
+                  {currSym} {formatCurrency(item.lineTotal !== undefined ? item.lineTotal : item.cifValue)}
+                </td>
               </tr>
             ))}
 
-            {Number(invoice.freightCharges || 0) > 0 && (
-              <tr className="border-b border-black divide-x divide-black">
-                <td colSpan={5} className="py-1 px-2 text-center italic text-gray-700">
+            {(Number(invoice.freightCharges || 0) > 0 || Number(invoice.freightCost || 0) > 0) && (
+              <tr>
+                <td colSpan={7} className="border border-gray-400 py-1 px-2 text-left italic text-gray-700">
                   {invoice.freightDescription || 'Free time at destination added cost for Freight'}
                 </td>
-                <td className="py-1 px-2 text-right font-medium">
-                  {formatCurrency(invoice.freightCharges)}
+                <td className="border border-gray-400 py-1 px-2 text-right font-normal">
+                  {currSym} {formatCurrency(invoice.freightCharges || invoice.freightCost)}
                 </td>
               </tr>
             )}
 
-            <tr className="border-b border-black divide-x divide-black font-bold">
-              <td colSpan={5} className="py-1.5 px-2 text-center">
-                TOTAL INVOICE VALUE ({invoice.currency || 'USD'})
+            <tr className="font-bold bg-white">
+              <td className="border border-gray-400 py-1.5 px-1"></td>
+              <td className="border border-gray-400 py-1.5 px-1.5 text-left font-bold">Total</td>
+              <td className="border border-gray-400 py-1.5 px-2"></td>
+              <td className="border border-gray-400 py-1.5 px-1.5"></td>
+              <td className="border border-gray-400 py-1.5 px-1.5"></td>
+              <td className="border border-gray-400 py-1.5 px-1.5"></td>
+              <td className="border border-gray-400 py-1.5 px-1.5 text-right font-bold">
+                {formatCurrency(totalCartons)}
               </td>
-              <td className="py-1.5 px-2 text-right">
-                {formatCurrency(invoice.grandTotal)}
+              <td className="border border-gray-400 py-1.5 px-2 text-right font-bold">
+                {currSym} {formatCurrency(invoice.grandTotal || invoice.totalAmount || 0)}
               </td>
             </tr>
           </tbody>
@@ -210,7 +245,7 @@ export default function PerformaInvoiceDocument({ invoice, settings = {} }) {
 
         {/* Amount in Words */}
         {invoice.amountInWords && (
-          <div className="border-x-[1.5px] border-b-[1.5px] border-black py-1 px-2 text-[10px] font-bold bg-gray-50/50">
+          <div className="border border-gray-400 border-t-0 py-1.5 px-2 text-[10.5px] font-bold bg-gray-50/40 mb-3">
             Amount in Words: {invoice.amountInWords}
           </div>
         )}

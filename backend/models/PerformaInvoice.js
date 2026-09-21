@@ -1,12 +1,16 @@
 const mongoose = require('mongoose');
 
 const invoiceItemSchema = new mongoose.Schema({
+  itemCode: { type: String, default: '' },
   packages: { type: Number, required: true, default: 1 },
+  quantityCartons: { type: Number, default: 0 },
   description: { type: String, required: true },
   perBoxWeight: { type: String, default: '' },
+  netWeightPerBox: { type: String, default: '' },
   ratePerNutKg: { type: Number, default: 0 },
   boxRate: { type: Number, default: 0 },
   cifValue: { type: Number, required: true, default: 0 },
+  lineTotal: { type: Number, default: 0 },
 });
 
 const performaInvoiceSchema = new mongoose.Schema(

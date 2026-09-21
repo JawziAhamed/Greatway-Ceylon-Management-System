@@ -157,19 +157,23 @@ const createInvoice = async (req, res) => {
     let itemsSubtotal = 0;
 
     for (const item of items) {
-      const pkgs = Number(item.packages) || 0;
+      const pkgs = Number(item.packages !== undefined ? item.packages : item.quantityCartons) || 0;
       const boxRate = Number(item.boxRate) || 0;
-      const cif = Number(item.cifValue !== undefined ? item.cifValue : (pkgs * boxRate).toFixed(2));
+      const cif = Number(item.cifValue !== undefined ? item.cifValue : (item.lineTotal !== undefined ? item.lineTotal : (pkgs * boxRate).toFixed(2)));
 
       itemsSubtotal += cif;
 
       calculatedItems.push({
+        itemCode: item.itemCode || '',
         packages: pkgs,
+        quantityCartons: pkgs,
         description: item.description,
-        perBoxWeight: item.perBoxWeight || '',
+        perBoxWeight: item.perBoxWeight || item.netWeightPerBox || '',
+        netWeightPerBox: item.netWeightPerBox || item.perBoxWeight || '',
         ratePerNutKg: Number(item.ratePerNutKg) || 0,
         boxRate,
         cifValue: cif,
+        lineTotal: cif,
       });
     }
 
@@ -289,19 +293,23 @@ const updateInvoice = async (req, res) => {
     if (items && Array.isArray(items)) {
       calculatedItems = [];
       for (const item of items) {
-        const pkgs = Number(item.packages) || 0;
+        const pkgs = Number(item.packages !== undefined ? item.packages : item.quantityCartons) || 0;
         const boxRate = Number(item.boxRate) || 0;
-        const cif = Number(item.cifValue !== undefined ? item.cifValue : (pkgs * boxRate).toFixed(2));
+        const cif = Number(item.cifValue !== undefined ? item.cifValue : (item.lineTotal !== undefined ? item.lineTotal : (pkgs * boxRate).toFixed(2)));
 
         itemsSubtotal += cif;
 
         calculatedItems.push({
+          itemCode: item.itemCode || '',
           packages: pkgs,
+          quantityCartons: pkgs,
           description: item.description,
-          perBoxWeight: item.perBoxWeight || '',
+          perBoxWeight: item.perBoxWeight || item.netWeightPerBox || '',
+          netWeightPerBox: item.netWeightPerBox || item.perBoxWeight || '',
           ratePerNutKg: Number(item.ratePerNutKg) || 0,
           boxRate,
           cifValue: cif,
+          lineTotal: cif,
         });
       }
     } else {

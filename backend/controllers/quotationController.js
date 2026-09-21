@@ -480,12 +480,16 @@ const convertToInvoice = async (req, res) => {
 
     // Map quotation items to performa invoice items
     const invoiceItems = quotation.items.map((item) => ({
+      itemCode: item.itemCode || '',
       packages: item.quantityCartons || 1,
+      quantityCartons: item.quantityCartons || 1,
       description: item.description,
       perBoxWeight: item.netWeightPerBox || '',
+      netWeightPerBox: item.netWeightPerBox || '',
       ratePerNutKg: item.ratePerNutKg || 0,
       boxRate: item.boxRate || 0,
       cifValue: item.lineTotal || 0,
+      lineTotal: item.lineTotal || 0,
     }));
 
     const invoice = await PerformaInvoice.create({

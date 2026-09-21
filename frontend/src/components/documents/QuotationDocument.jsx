@@ -23,18 +23,19 @@ export const formatDate = (dateStr) => {
 export default function QuotationDocument({ quotation, settings = {} }) {
   if (!quotation) return null;
 
-  const buyer = quotation.buyerSnapshot || quotation.customer || {};
-  const companyName = settings.companyName || 'GREATWAY CEYLON (PVT) LTD';
-  const companyAddress = settings.address || 'No. 76/A, Rathamba, Ambagasdowa, Sri Lanka - 90300';
-  const email = settings.email || 'info@greatwayceylon.com';
-  const website = settings.website || 'https://greatwayceylon.com/';
-  const regNo = settings.registrationNumber || 'PV 00263042';
-  const taxNo = settings.taxNumber || '103406048 - 7000';
+  const safeSettings = settings || {};
+  const buyer = quotation.buyerSnapshot || (typeof quotation.customer === 'object' ? quotation.customer : null) || {};
+  const companyName = safeSettings.companyName || 'GREATWAY CEYLON (PVT) LTD';
+  const companyAddress = safeSettings.address || 'No. 76/A, Rathamba, Ambagasdowa, Sri Lanka - 90300';
+  const email = safeSettings.email || 'info@greatwayceylon.com';
+  const website = safeSettings.website || 'https://greatwayceylon.com/';
+  const regNo = safeSettings.registrationNumber || 'PV 00263042';
+  const taxNo = safeSettings.taxNumber || '103406048 - 7000';
 
   const specificTerms =
     quotation.specificTerms && quotation.specificTerms.length > 0
       ? quotation.specificTerms
-      : settings.quotationSettings?.defaultSpecificTerms || [];
+      : safeSettings.quotationSettings?.defaultSpecificTerms || [];
 
   return (
     <div className="bg-white text-gray-900 p-8 max-w-[820px] mx-auto text-[11px] leading-relaxed shadow-md print:shadow-none print:p-0 print:max-w-none">

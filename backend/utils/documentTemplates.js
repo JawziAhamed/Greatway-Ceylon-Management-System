@@ -411,30 +411,51 @@ const generateInvoiceHTML = (invoice, settings, logoBase64) => {
 
   const logoSrc = logoBase64 ? `data:image/png;base64,${logoBase64}` : '/uploads/logo.png';
 
+  const getItemCode = (item) => {
+    if (item.itemCode) return item.itemCode;
+    if (item.code) return item.code;
+    const desc = (item.description || '').toLowerCase();
+    if (desc.includes('king coconut')) return 'KC';
+    if (desc.includes('red lady papaya') || desc.includes('red papaya')) return 'RP';
+    if (desc.includes('curry papaya') || desc.includes('green papaya')) return 'CP/GP';
+    if (desc.includes('tapioca') || desc.includes('kappa')) return 'Kappa';
+    return '';
+  };
+
+  const totalCartons =
+    invoice.totalCartons ||
+    (invoice.items || []).reduce(
+      (sum, it) =>
+        sum + (Number(it.quantityCartons !== undefined ? it.quantityCartons : it.packages) || 0),
+      0
+    );
+
   const itemsRows = (invoice.items || [])
     .map(
-      (item) => `
+      (item, idx) => `
     <tr>
-      <td style="text-align: center; border: 1px solid #111; padding: 4px 6px; font-size: 11px;">${item.packages || ''}</td>
-      <td style="border: 1px solid #111; padding: 4px 6px; font-size: 11px; font-weight: 500;">${item.description || ''}</td>
-      <td style="text-align: center; border: 1px solid #111; padding: 4px 6px; font-size: 11px;">${item.perBoxWeight || ''}</td>
-      <td style="text-align: right; border: 1px solid #111; padding: 4px 6px; font-size: 11px;">${formatAmount(item.ratePerNutKg)}</td>
-      <td style="text-align: right; border: 1px solid #111; padding: 4px 6px; font-size: 11px;">${formatAmount(item.boxRate)}</td>
-      <td style="text-align: right; border: 1px solid #111; padding: 4px 6px; font-size: 11px; font-weight: 500;">${formatAmount(item.cifValue)}</td>
+      <td style="text-align: center; border: 1px solid #777; padding: 4px 6px; font-size: 11px;">${idx + 1}</td>
+      <td style="text-align: center; border: 1px solid #777; padding: 4px 6px; font-size: 11px; font-weight: 500;">${getItemCode(item)}</td>
+      <td style="border: 1px solid #777; padding: 4px 6px; font-size: 11px;">${item.description || ''}</td>
+      <td style="text-align: center; border: 1px solid #777; padding: 4px 6px; font-size: 11px;">${item.netWeightPerBox || item.perBoxWeight || ''}</td>
+      <td style="text-align: right; border: 1px solid #777; padding: 4px 6px; font-size: 11px;">$ ${formatAmount(item.ratePerNutKg)}</td>
+      <td style="text-align: right; border: 1px solid #777; padding: 4px 6px; font-size: 11px;">$ ${formatAmount(item.boxRate)}</td>
+      <td style="text-align: right; border: 1px solid #777; padding: 4px 6px; font-size: 11px; font-weight: 500;">${formatAmount(item.quantityCartons !== undefined ? item.quantityCartons : item.packages)}</td>
+      <td style="text-align: right; border: 1px solid #777; padding: 4px 6px; font-size: 11px; font-weight: 500;">$ ${formatAmount(item.lineTotal !== undefined ? item.lineTotal : item.cifValue)}</td>
     </tr>
   `
     )
     .join('');
 
   const freightRow =
-    Number(invoice.freightCharges || 0) > 0
+    (Number(invoice.freightCharges || 0) > 0 || Number(invoice.freightCost || 0) > 0)
       ? `
     <tr>
-      <td colspan="5" style="border: 1px solid #111; padding: 4px 8px; font-size: 11px; text-align: center; font-style: italic;">
+      <td colspan="7" style="border: 1px solid #777; padding: 4px 8px; font-size: 11px; text-align: left; font-style: italic;">
         ${invoice.freightDescription || 'Free time at destination added cost for Freight'}
       </td>
-      <td style="text-align: right; border: 1px solid #111; padding: 4px 6px; font-size: 11px; font-weight: 500;">
-        ${formatAmount(invoice.freightCharges)}
+      <td style="text-align: right; border: 1px solid #777; padding: 4px 6px; font-size: 11px; font-weight: 500;">
+        $ ${formatAmount(invoice.freightCharges || invoice.freightCost)}
       </td>
     </tr>
   `
@@ -531,19 +552,17 @@ const generateInvoiceHTML = (invoice, settings, logoBase64) => {
     .items-table {
       width: 100%;
       border-collapse: collapse;
-      margin-top: 0px;
-      border-left: 1.5px solid #111;
-      border-right: 1.5px solid #111;
-      border-bottom: 1.5px solid #111;
+      margin-top: 8px;
+      margin-bottom: 0px;
     }
     .items-table th {
-      background-color: #fff;
-      color: #111;
+      background-color: #14663e;
+      color: #ffffff;
       padding: 6px 4px;
       font-size: 10px;
       font-weight: bold;
       text-align: center;
-      border: 1px solid #111;
+      border: 1px solid #14663e;
       line-height: 1.25;
     }
     .container-header {
@@ -551,21 +570,22 @@ const generateInvoiceHTML = (invoice, settings, logoBase64) => {
       font-weight: bold;
       font-size: 10.5px;
       padding: 4px 8px;
-      border: 1px solid #111;
+      border: 1px solid #777;
     }
     .total-row td {
-      border: 1px solid #111;
-      padding: 6px 8px;
+      border: 1px solid #777;
+      padding: 5px 6px;
       font-weight: bold;
       font-size: 11px;
     }
     .amount-words {
-      padding: 4px 8px;
-      font-size: 10px;
+      padding: 5px 8px;
+      font-size: 10.5px;
       font-weight: bold;
       background-color: #fcfcfc;
-      border: 1px solid #111;
+      border: 1px solid #777;
       border-top: none;
+      margin-bottom: 8px;
     }
     .terms-box {
       margin-top: 10px;
@@ -641,7 +661,6 @@ const generateInvoiceHTML = (invoice, settings, logoBase64) => {
           <div style="font-weight: bold; font-size: 11px;">${buyer.companyName || 'N/A'}</div>
           <div>${buyer.address ? buyer.address.replace(/\n/g, '<br>') : ''}</div>
           ${buyer.country ? `<div>${buyer.country}</div>` : ''}
-          ${buyer.taxNumber ? `<div>TAX/VAT: ${buyer.taxNumber}</div>` : ''}
         </td>
         <td style="width: 50%;">
           <table style="width: 100%; border-collapse: collapse;">
@@ -683,27 +702,41 @@ const generateInvoiceHTML = (invoice, settings, logoBase64) => {
           <div>${invoice.portOfDischarge || ''}</div>
         </td>
       </tr>
+      ${invoice.containerSpecification ? `
+      <tr>
+        <td colspan="2" style="border: 1px solid #111; padding: 6px 8px; font-size: 10.5px;">
+          <strong>CONTAINER SPECIFICATION:</strong> ${invoice.containerSpecification}
+        </td>
+      </tr>
+      ` : ''}
     </table>
 
     <!-- Items Table -->
     <table class="items-table">
       <thead>
         <tr>
-          <th style="width: 80px;">NO.OF<br>PACKAGES</th>
+          <th style="width: 25px;">#</th>
+          <th style="width: 60px;">ITEM NAME</th>
           <th>DESCRIPTION</th>
-          <th style="width: 100px;">PER BOX/<br>WEIGHT (KG)</th>
-          <th style="width: 100px;">RATE PER NUT<br>KG (${invoice.currency})</th>
-          <th style="width: 85px;">BOX RATE<br>(${invoice.currency})</th>
-          <th style="width: 100px;">${getIncotermCode(invoice.incoterms)} VALUE<br>(${invoice.currency})</th>
+          <th style="width: 85px;">Net Weight Per Box</th>
+          <th style="width: 85px;">Rate per Nut/<br>Kg in ${invoice.currency || 'USD'}</th>
+          <th style="width: 75px;">Per Box Rate<br>(${invoice.currency || 'USD'})</th>
+          <th style="width: 75px;">Quantity Cartons</th>
+          <th style="width: 90px;">Total Amount<br>(${invoice.currency || 'USD'})</th>
         </tr>
       </thead>
       <tbody>
-        ${invoice.containerSpecification ? `<tr><td colspan="6" class="container-header">${invoice.containerSpecification}</td></tr>` : ''}
         ${itemsRows}
         ${freightRow}
         <tr class="total-row">
-          <td colspan="5" style="text-align: center; border: 1px solid #111;">TOTAL INVOICE VALUE (${invoice.currency || 'USD'})</td>
-          <td style="text-align: right; border: 1px solid #111;">${formatAmount(invoice.grandTotal)}</td>
+          <td style="border: 1px solid #777;"></td>
+          <td style="border: 1px solid #777; text-align: left; font-weight: bold; padding: 4px 6px;">Total</td>
+          <td style="border: 1px solid #777;"></td>
+          <td style="border: 1px solid #777;"></td>
+          <td style="border: 1px solid #777;"></td>
+          <td style="border: 1px solid #777;"></td>
+          <td style="border: 1px solid #777; text-align: right; font-weight: bold; padding: 4px 6px;">${formatAmount(totalCartons)}</td>
+          <td style="border: 1px solid #777; text-align: right; font-weight: bold; padding: 4px 6px;">$ ${formatAmount(invoice.grandTotal || invoice.totalAmount || 0)}</td>
         </tr>
       </tbody>
     </table>
