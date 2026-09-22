@@ -208,13 +208,13 @@ const generateQuotationHTML = (quotation, settings = {}, logoBase64) => {
       margin-bottom: 10px;
     }
     .items-table th {
-      background-color: #14663e;
-      color: #ffffff;
+      background-color: #cf9e62;
+      color: #000000;
       padding: 6px 4px;
       font-size: 10.5px;
       font-weight: bold;
       text-align: center;
-      border: 1px solid #14663e;
+      border: 1px solid #b88a52;
     }
     .total-row td {
       border: 1px solid #777;
@@ -628,7 +628,7 @@ const generateInvoiceHTML = (invoice, settings = {}, logoBase64) => {
       color: #222;
     }
     .banner-title {
-      background-color: #dbe8d8;
+      background-color: #cf9e62;
       border: 1.5px solid #111;
       text-align: center;
       padding: 6px;
@@ -662,13 +662,13 @@ const generateInvoiceHTML = (invoice, settings = {}, logoBase64) => {
       margin-bottom: 0px;
     }
     .items-table th {
-      background-color: #14663e;
-      color: #ffffff;
+      background-color: #cf9e62;
+      color: #000000;
       padding: 6px 4px;
       font-size: 10px;
       font-weight: bold;
       text-align: center;
-      border: 1px solid #14663e;
+      border: 1px solid #b88a52;
       line-height: 1.25;
     }
     .container-header {

@@ -90,7 +90,7 @@ export default function PerformaInvoiceDocument({ invoice, settings = {} }) {
         </div>
 
         {/* Proforma Invoice Banner */}
-        <div className="bg-[#dbe8d8] border-[1.5px] border-black py-1.5 px-3 text-center mb-0">
+        <div className="bg-[#cf9e62] border-[1.5px] border-black py-1.5 px-3 text-center mb-0">
           <h1 className="text-black text-xs font-bold tracking-wider">
             PROFORMA INVOICE
           </h1>
@@ -203,21 +203,21 @@ export default function PerformaInvoiceDocument({ invoice, settings = {} }) {
         {/* Items Table matching Quotation view */}
         <table className="w-full border-collapse my-2 text-[10.5px]">
           <thead>
-            <tr className="bg-[#14663e] text-white">
-              <th className="border border-[#14663e] py-1.5 px-1 text-center w-7 font-bold">#</th>
-              <th className="border border-[#14663e] py-1.5 px-1.5 text-center w-16 font-bold">ITEM NAME</th>
-              <th className="border border-[#14663e] py-1.5 px-2 text-center font-bold">DESCRIPTION</th>
-              <th className="border border-[#14663e] py-1.5 px-1.5 text-center w-24 font-bold">Net Weight Per Box</th>
-              <th className="border border-[#14663e] py-1.5 px-1.5 text-center w-24 font-bold leading-tight">
+            <tr className="bg-[#cf9e62] text-black">
+              <th className="border border-[#b88a52] py-1.5 px-1 text-center w-7 font-bold">#</th>
+              <th className="border border-[#b88a52] py-1.5 px-1.5 text-center w-16 font-bold">ITEM NAME</th>
+              <th className="border border-[#b88a52] py-1.5 px-2 text-center font-bold">DESCRIPTION</th>
+              <th className="border border-[#b88a52] py-1.5 px-1.5 text-center w-24 font-bold">Net Weight Per Box</th>
+              <th className="border border-[#b88a52] py-1.5 px-1.5 text-center w-24 font-bold leading-tight">
                 Rate per Nut/ Kg in {invoice.currency || 'USD'}
               </th>
-              <th className="border border-[#14663e] py-1.5 px-1.5 text-center w-20 font-bold leading-tight">
+              <th className="border border-[#b88a52] py-1.5 px-1.5 text-center w-20 font-bold leading-tight">
                 Per Box Rate ({invoice.currency || 'USD'})
               </th>
-              <th className="border border-[#14663e] py-1.5 px-1.5 text-center w-20 font-bold leading-tight">
+              <th className="border border-[#b88a52] py-1.5 px-1.5 text-center w-20 font-bold leading-tight">
                 Quantity Cartons
               </th>
-              <th className="border border-[#14663e] py-1.5 px-2 text-center w-24 font-bold leading-tight">
+              <th className="border border-[#b88a52] py-1.5 px-2 text-center w-24 font-bold leading-tight">
                 Total Amount ({invoice.currency || 'USD'})
               </th>
             </tr>

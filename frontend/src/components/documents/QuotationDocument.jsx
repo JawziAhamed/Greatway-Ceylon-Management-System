@@ -153,15 +153,15 @@ export default function QuotationDocument({ quotation, settings = {} }) {
       {/* Items Table */}
       <table className="w-full border-collapse mb-2 text-[10.5px]">
         <thead>
-          <tr className="bg-[#14663e] text-white">
-            <th className="border border-[#14663e] py-1.5 px-1 text-center w-7 font-bold">#</th>
-            <th className="border border-[#14663e] py-1.5 px-1.5 text-center w-16 font-bold">ITEM NAME</th>
-            <th className="border border-[#14663e] py-1.5 px-2 text-left font-bold">DESCRIPTION</th>
-            <th className="border border-[#14663e] py-1.5 px-1.5 text-center w-24 font-bold">Net Weight Per Box</th>
-            <th className="border border-[#14663e] py-1.5 px-1.5 text-right w-24 font-bold">Rate per Nut/ Kg in USD</th>
-            <th className="border border-[#14663e] py-1.5 px-1.5 text-right w-20 font-bold">Per Box Rate (USD)</th>
-            <th className="border border-[#14663e] py-1.5 px-1.5 text-right w-20 font-bold">Quantity Cartons</th>
-            <th className="border border-[#14663e] py-1.5 px-2 text-right w-24 font-bold">Total Amount (USD)</th>
+          <tr className="bg-[#cf9e62] text-black">
+            <th className="border border-[#b88a52] py-1.5 px-1 text-center w-7 font-bold">#</th>
+            <th className="border border-[#b88a52] py-1.5 px-1.5 text-center w-16 font-bold">ITEM NAME</th>
+            <th className="border border-[#b88a52] py-1.5 px-2 text-left font-bold">DESCRIPTION</th>
+            <th className="border border-[#b88a52] py-1.5 px-1.5 text-center w-24 font-bold">Net Weight Per Box</th>
+            <th className="border border-[#b88a52] py-1.5 px-1.5 text-right w-24 font-bold">Rate per Nut/ Kg in USD</th>
+            <th className="border border-[#b88a52] py-1.5 px-1.5 text-right w-20 font-bold">Per Box Rate (USD)</th>
+            <th className="border border-[#b88a52] py-1.5 px-1.5 text-right w-20 font-bold">Quantity Cartons</th>
+            <th className="border border-[#b88a52] py-1.5 px-2 text-right w-24 font-bold">Total Amount (USD)</th>
           </tr>
         </thead>
         <tbody>
