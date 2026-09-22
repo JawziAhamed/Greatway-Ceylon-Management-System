@@ -134,7 +134,9 @@ const createQuotation = async (req, res) => {
       paymentTerms,
       deliveryTerms,
       incoterms,
+      finalDestination = '',
       saleType = 'Own Sale',
+      additionalCharges = [],
       specificTerms,
       signatory,
       status = 'Draft',
@@ -172,7 +174,13 @@ const createQuotation = async (req, res) => {
       });
     }
 
-    const freight = Number(freightCost) || 0;
+    let freight = Number(freightCost) || 0;
+    if (Array.isArray(additionalCharges) && additionalCharges.length > 0) {
+      const sumAdditional = additionalCharges.reduce((s, c) => s + (Number(c.amount) || 0), 0);
+      if (sumAdditional > 0 || freight === 0) {
+        freight = sumAdditional;
+      }
+    }
     const subtotal = Number((itemsSubtotal + freight).toFixed(2));
     const discountVal = Number(discount) || 0;
     const taxVal = Number(tax) || 0;
@@ -195,6 +203,7 @@ const createQuotation = async (req, res) => {
         buyerReference: customer.buyerReference,
       },
       currency,
+      finalDestination: finalDestination || '',
       vesselDetails:
         vesselDetails ||
         'Line : MAERSK  Transit time : 05 DAYS DIRECT | FREE TIME AT DESTINATION : 7 DAYS',
@@ -202,6 +211,7 @@ const createQuotation = async (req, res) => {
       items: calculatedItems,
       freightDescription: freightDescription || 'Free time at destination added cost for Freight',
       freightCost: freight,
+      additionalCharges: Array.isArray(additionalCharges) ? additionalCharges : [],
       totalCartons,
       subtotal,
       discount: discountVal,
@@ -310,7 +320,14 @@ const updateQuotation = async (req, res) => {
     }
 
     const curr = currency || existing.currency || 'USD';
-    const freight = freightCost !== undefined ? Number(freightCost) : existing.freightCost;
+    let freight = freightCost !== undefined ? Number(freightCost) : existing.freightCost;
+    if (req.body.additionalCharges !== undefined && Array.isArray(req.body.additionalCharges)) {
+      const sumAdditional = req.body.additionalCharges.reduce((s, c) => s + (Number(c.amount) || 0), 0);
+      if (sumAdditional > 0 || freightCost === undefined || freightCost === 0) {
+        freight = sumAdditional;
+      }
+      existing.additionalCharges = req.body.additionalCharges;
+    }
     const subtotal = Number((itemsSubtotal + freight).toFixed(2));
     const discountVal = discount !== undefined ? Number(discount) : existing.discount;
     const taxVal = tax !== undefined ? Number(tax) : existing.tax;
@@ -333,12 +350,19 @@ const updateQuotation = async (req, res) => {
     existing.tax = taxVal;
     existing.grandTotal = grandTotal;
     existing.amountInWords = words;
+    existing.finalDestination = req.body.finalDestination !== undefined ? req.body.finalDestination : existing.finalDestination;
     existing.paymentTerms = paymentTerms !== undefined ? paymentTerms : existing.paymentTerms;
     existing.deliveryTerms = deliveryTerms !== undefined ? deliveryTerms : existing.deliveryTerms;
     existing.incoterms = incoterms || existing.incoterms;
     existing.saleType = req.body.saleType !== undefined ? req.body.saleType : (existing.saleType || 'Own Sale');
     existing.specificTerms = specificTerms || existing.specificTerms;
-    existing.signatory = signatory || existing.signatory;
+    if (signatory) {
+      existing.signatory = {
+        name: signatory.name || existing.signatory?.name || 'Authorized Signatory',
+        designation: signatory.designation || existing.signatory?.designation || 'Chief Executive Officer',
+        company: signatory.company || existing.signatory?.company || 'Greatway Ceylon (Pvt) Ltd',
+      };
+    }
     existing.status = status || existing.status;
     existing.notes = notes !== undefined ? notes : existing.notes;
 
@@ -507,12 +531,14 @@ const convertToInvoice = async (req, res) => {
       shippedPer: 'Maersk , Salalah, Oman (CY)',
       voyageNo: '',
       portOfLoading: settings?.invoiceSettings?.defaultPortOfLoading || 'COLOMBO PORT SRI LANKA',
-      portOfDischarge: 'Salalah, Oman (CY)',
+      portOfDischarge: quotation.finalDestination || 'Salalah, Oman (CY)',
+      finalDestination: quotation.finalDestination || '',
       containerSpecification: '1X40 REEFER',
       incoterms: quotation.incoterms || 'CIF',
       items: invoiceItems,
       freightDescription: quotation.freightDescription || 'Free time at destination added cost for Freight',
       freightCharges: quotation.freightCost || 0,
+      additionalCharges: quotation.additionalCharges && quotation.additionalCharges.length > 0 ? quotation.additionalCharges : [],
       otherCharges: 0,
       subtotal: quotation.subtotal,
       discount: quotation.discount,

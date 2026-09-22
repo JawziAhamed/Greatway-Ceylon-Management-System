@@ -117,6 +117,12 @@ const performaInvoiceSchema = new mongoose.Schema(
       type: Number,
       default: 0,
     },
+    additionalCharges: [
+      {
+        description: { type: String, default: '' },
+        amount: { type: Number, default: 0 },
+      },
+    ],
     otherCharges: {
       type: Number,
       default: 0,

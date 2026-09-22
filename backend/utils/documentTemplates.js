@@ -326,7 +326,7 @@ const generateQuotationHTML = (quotation, settings = {}, logoBase64) => {
           </tr>
           <tr>
             <td class="meta-label">INCOTERMS</td>
-            <td style="font-weight: bold;">: ${formatIncotermDisplay(quotation.incoterms, buyer.country || 'Destination Port')}</td>
+            <td style="font-weight: bold;">: ${formatIncotermDisplay(quotation.incoterms, quotation.finalDestination || buyer.country || 'Destination Port')}</td>
           </tr>
           ${quotation.status ? `<tr><td class="meta-label">STATUS</td><td style="font-weight: bold; color: #14663e;">: ${quotation.status.toUpperCase()}</td></tr>` : ''}
         </table>
@@ -349,7 +349,25 @@ const generateQuotationHTML = (quotation, settings = {}, logoBase64) => {
       </thead>
       <tbody>
         ${itemsRows}
-        ${freightRow}
+        ${
+          quotation.additionalCharges && quotation.additionalCharges.length > 0
+            ? quotation.additionalCharges
+                .filter((c) => Number(c.amount || 0) > 0 || c.description)
+                .map(
+                  (c) => `
+          <tr>
+            <td colspan="7" style="border: 1px solid #777; padding: 4px 8px; font-size: 11px; text-align: left; font-style: italic;">
+              ${c.description || 'Additional Charge / Freight'}
+            </td>
+            <td style="text-align: right; border: 1px solid #777; padding: 4px 6px; font-size: 11px; font-weight: 500;">
+              $ ${formatAmount(c.amount)}
+            </td>
+          </tr>
+        `
+                )
+                .join('')
+            : freightRow
+        }
         <tr class="total-row">
           <td colspan="6" style="text-align: left; font-weight: bold; padding: 5px 8px; border: 1px solid #777;">Total</td>
           <td style="text-align: right; border: 1px solid #777; font-weight: bold; padding: 5px 6px;">${formatAmount(quotation.totalCartons)}</td>
@@ -378,11 +396,11 @@ const generateQuotationHTML = (quotation, settings = {}, logoBase64) => {
         <div style="margin-bottom: 25px;">...................................</div>
         <strong>${quotation.signatory?.name || 'Authorized Signatory'}</strong><br>
         ${quotation.signatory?.designation || 'Chief Executive Officer'}<br>
-        <strong>${companyName}</strong>
+        <strong>${quotation.signatory?.company || companyName}</strong>
       </div>
       <div class="seal-box">
         OFFICIAL COMPANY SEAL<br>
-        <strong>${companyName}</strong><br>
+        <strong>${quotation.signatory?.company || companyName}</strong><br>
         ${regNo}
       </div>
     </div>
@@ -494,6 +512,25 @@ const generateInvoiceHTML = (invoice, settings = {}, logoBase64) => {
     </tr>
   `
       : '';
+
+  const additionalChargesRows =
+    invoice.additionalCharges && invoice.additionalCharges.length > 0
+      ? invoice.additionalCharges
+          .filter((c) => Number(c.amount || 0) > 0 || c.description)
+          .map(
+            (c) => `
+      <tr>
+        <td colspan="7" style="border: 1px solid #777; padding: 4px 8px; font-size: 11px; text-align: left; font-style: italic;">
+          ${c.description || 'Additional Charge / Freight'}
+        </td>
+        <td style="text-align: right; border: 1px solid #777; padding: 4px 6px; font-size: 11px; font-weight: 500;">
+          $ ${formatAmount(c.amount)}
+        </td>
+      </tr>
+    `
+          )
+          .join('')
+      : freightRow;
 
   const termsList =
     invoice.termsAndConditions && invoice.termsAndConditions.length > 0
@@ -750,7 +787,7 @@ const generateInvoiceHTML = (invoice, settings = {}, logoBase64) => {
             <tr><td style="border: none; padding: 2px 8px 2px 0; font-weight: bold; text-align: right; white-space: nowrap;">Seal Number:</td><td style="border: none; padding: 2px 0; width: 55%; font-weight: normal;">${invoice.sealNumber || 'TBC'}</td></tr>
             <tr><td style="border: none; padding: 2px 8px 2px 0; font-weight: bold; text-align: right; white-space: nowrap;">POL:</td><td style="border: none; padding: 2px 0; width: 55%; font-weight: normal;">${invoice.portOfLoading || 'DURBAN'}</td></tr>
             <tr><td style="border: none; padding: 2px 8px 2px 0; font-weight: bold; text-align: right; white-space: nowrap;">POD:</td><td style="border: none; padding: 2px 0; width: 55%; font-weight: normal;">${invoice.portOfDischarge || 'KHOR AL FAKKAN'}</td></tr>
-            <tr><td style="border: none; padding: 2px 8px 2px 0; font-weight: bold; text-align: right; white-space: nowrap;">Final Destination:</td><td style="border: none; padding: 2px 0; width: 55%; font-weight: normal;">${invoice.finalDestination || invoice.portOfDischarge || 'KHOR AL FAKKAN'}</td></tr>
+            <tr><td style="border: none; padding: 2px 8px 2px 0; font-weight: bold; text-align: right; white-space: nowrap;">Final Destination:</td><td style="border: none; padding: 2px 0; width: 55%; font-weight: normal;">${invoice.finalDestination !== undefined && invoice.finalDestination !== '' ? invoice.finalDestination : (invoice.portOfDischarge || 'KHOR AL FAKKAN')}</td></tr>
             <tr><td style="border: none; padding: 2px 8px 2px 0; font-weight: bold; text-align: right; white-space: nowrap;">ETD:</td><td style="border: none; padding: 2px 0; width: 55%; font-weight: normal;">${invoice.etd || '29/07/2026'}</td></tr>
             <tr><td style="border: none; padding: 2px 8px 2px 0; font-weight: bold; text-align: right; white-space: nowrap;">ETA:</td><td style="border: none; padding: 2px 0; width: 55%; font-weight: normal;">${invoice.eta || '12/08/2026'}</td></tr>
             <tr><td style="border: none; padding: 2px 8px 2px 0; font-weight: bold; text-align: right; white-space: nowrap;">Stack :</td><td style="border: none; padding: 2px 0; width: 55%; font-weight: normal;">${invoice.stack || '25/07 to 26/07 06:00 P'}</td></tr>
@@ -775,7 +812,7 @@ const generateInvoiceHTML = (invoice, settings = {}, logoBase64) => {
       </thead>
       <tbody>
         ${itemsRows}
-        ${freightRow}
+        ${additionalChargesRows}
         <tr class="total-row">
           <td colspan="6" style="border: 1px solid #777; text-align: left; font-weight: bold; padding: 5px 8px;">Total</td>
           <td style="border: 1px solid #777; text-align: right; font-weight: bold; padding: 5px 6px;">${formatAmount(totalCartons)}</td>

@@ -75,9 +75,33 @@ export default function InvoiceEditorPage() {
   // Financial adjustments
   const [freightDescription, setFreightDescription] = useState('Free time at destination added cost for Freight');
   const [freightCharges, setFreightCharges] = useState(250.00);
+  const [additionalCharges, setAdditionalCharges] = useState([
+    { description: 'Free time at destination added cost for Freight', amount: 250.00 },
+  ]);
   const [otherCharges, setOtherCharges] = useState(0);
   const [discount, setDiscount] = useState(0);
   const [tax, setTax] = useState(0);
+
+  const handleAddAdditionalCharge = () => {
+    setAdditionalCharges([...additionalCharges, { description: '', amount: 0 }]);
+  };
+
+  const handleRemoveAdditionalCharge = (index) => {
+    if (additionalCharges.length <= 1) {
+      setAdditionalCharges([{ description: '', amount: 0 }]);
+      return;
+    }
+    setAdditionalCharges(additionalCharges.filter((_, i) => i !== index));
+  };
+
+  const handleAdditionalChargeChange = (index, field, value) => {
+    const updated = [...additionalCharges];
+    updated[index] = {
+      ...updated[index],
+      [field]: field === 'amount' ? (value === '' ? '' : Number(value)) : value,
+    };
+    setAdditionalCharges(updated);
+  };
 
   // Terms and Bank
   const [paymentTerms, setPaymentTerms] = useState(
@@ -156,15 +180,29 @@ export default function InvoiceEditorPage() {
             setSealNumber(inv.sealNumber || 'TBC');
             setPortOfLoading(inv.portOfLoading || 'DURBAN');
             setPortOfDischarge(inv.portOfDischarge || 'KHOR AL FAKKAN');
-            setFinalDestination(inv.finalDestination || inv.portOfDischarge || 'KHOR AL FAKKAN');
+            setFinalDestination(inv.finalDestination !== undefined && inv.finalDestination !== '' ? inv.finalDestination : (inv.portOfDischarge || 'KHOR AL FAKKAN'));
             setEtd(inv.etd || '29/07/2026');
             setEta(inv.eta || '12/08/2026');
             setStack(inv.stack || '25/07 to 26/07 06:00 P');
             setContainerSpecification(inv.containerSpecification || '');
             setIncoterms(inv.incoterms || 'CIF');
             setItems(inv.items || []);
-            setFreightDescription(inv.freightDescription || '');
-            setFreightCharges(inv.freightCharges || 0);
+            if (inv.additionalCharges && inv.additionalCharges.length > 0) {
+              setAdditionalCharges(inv.additionalCharges);
+              setFreightCharges(inv.additionalCharges.reduce((s, c) => s + (Number(c.amount) || 0), 0));
+              setFreightDescription(inv.additionalCharges[0]?.description || '');
+            } else if (inv.freightCharges || inv.freightDescription) {
+              setAdditionalCharges([{
+                description: inv.freightDescription || 'Free time at destination added cost for Freight',
+                amount: Number(inv.freightCharges) || 0,
+              }]);
+              setFreightDescription(inv.freightDescription || '');
+              setFreightCharges(inv.freightCharges || 0);
+            } else {
+              setAdditionalCharges([]);
+              setFreightDescription('');
+              setFreightCharges(0);
+            }
             setOtherCharges(inv.otherCharges || 0);
             setDiscount(inv.discount || 0);
             setTax(inv.tax || 0);
@@ -210,8 +248,12 @@ export default function InvoiceEditorPage() {
   // Calculations
   const totalPackages = items.reduce((sum, item) => sum + (Number(item.packages) || 0), 0);
   const itemsSubtotal = items.reduce((sum, item) => sum + (Number(item.cifValue) || 0), 0);
+  const totalAdditionalCharges = additionalCharges.reduce(
+    (sum, c) => sum + (Number(c.amount) || 0),
+    0
+  );
   const subtotal = Number(
-    (itemsSubtotal + (Number(freightCharges) || 0) + (Number(otherCharges) || 0)).toFixed(2)
+    (itemsSubtotal + totalAdditionalCharges + (Number(otherCharges) || 0)).toFixed(2)
   );
   const grandTotal = Number((subtotal - (Number(discount) || 0) + (Number(tax) || 0)).toFixed(2));
 
@@ -368,8 +410,9 @@ export default function InvoiceEditorPage() {
           lineTotal: it.lineTotal === '' ? 0 : Number(it.lineTotal) || 0,
           cifValue: it.cifValue === '' ? 0 : Number(it.cifValue) || 0,
         })),
-        freightDescription,
-        freightCharges: Number(freightCharges) || 0,
+        additionalCharges,
+        freightDescription: additionalCharges[0]?.description || freightDescription,
+        freightCharges: totalAdditionalCharges,
         otherCharges: Number(otherCharges) || 0,
         discount: Number(discount) || 0,
         tax: Number(tax) || 0,
@@ -423,8 +466,10 @@ export default function InvoiceEditorPage() {
     containerSpecification,
     incoterms,
     items,
-    freightDescription,
-    freightCharges: Number(freightCharges) || 0,
+    additionalCharges,
+    freightDescription: additionalCharges[0]?.description || freightDescription,
+    freightCharges: totalAdditionalCharges,
+    freightCost: totalAdditionalCharges,
     subtotal,
     discount: Number(discount) || 0,
     tax: Number(tax) || 0,
@@ -659,6 +704,8 @@ export default function InvoiceEditorPage() {
                     type="text"
                     value={vessel}
                     onChange={(e) => setVessel(e.target.value)}
+                    onFocus={(e) => e.target.select()}
+                    onClick={(e) => e.target.select()}
                     placeholder="e.g. MSC PRELUDE V"
                     className="w-full px-3 py-2 border border-gray-300 rounded-xl text-xs"
                   />
@@ -672,6 +719,8 @@ export default function InvoiceEditorPage() {
                     type="text"
                     value={voyageNo}
                     onChange={(e) => setVoyageNo(e.target.value)}
+                    onFocus={(e) => e.target.select()}
+                    onClick={(e) => e.target.select()}
                     placeholder="e.g. IW626R"
                     className="w-full px-3 py-2 border border-gray-300 rounded-xl text-xs"
                   />
@@ -685,6 +734,8 @@ export default function InvoiceEditorPage() {
                     type="text"
                     value={containerNo}
                     onChange={(e) => setContainerNo(e.target.value)}
+                    onFocus={(e) => e.target.select()}
+                    onClick={(e) => e.target.select()}
                     placeholder="e.g. TBC or 1X40 REEFER"
                     className="w-full px-3 py-2 border border-gray-300 rounded-xl text-xs font-mono"
                   />
@@ -698,6 +749,8 @@ export default function InvoiceEditorPage() {
                     type="text"
                     value={sealNumber}
                     onChange={(e) => setSealNumber(e.target.value)}
+                    onFocus={(e) => e.target.select()}
+                    onClick={(e) => e.target.select()}
                     placeholder="e.g. TBC"
                     className="w-full px-3 py-2 border border-gray-300 rounded-xl text-xs font-mono"
                   />
@@ -711,6 +764,8 @@ export default function InvoiceEditorPage() {
                     type="text"
                     value={portOfLoading}
                     onChange={(e) => setPortOfLoading(e.target.value)}
+                    onFocus={(e) => e.target.select()}
+                    onClick={(e) => e.target.select()}
                     placeholder="e.g. DURBAN or COLOMBO PORT"
                     className="w-full px-3 py-2 border border-gray-300 rounded-xl text-xs"
                   />
@@ -724,6 +779,8 @@ export default function InvoiceEditorPage() {
                     type="text"
                     value={portOfDischarge}
                     onChange={(e) => setPortOfDischarge(e.target.value)}
+                    onFocus={(e) => e.target.select()}
+                    onClick={(e) => e.target.select()}
                     placeholder="e.g. KHOR AL FAKKAN or Salalah, Oman"
                     className="w-full px-3 py-2 border border-gray-300 rounded-xl text-xs"
                   />
@@ -737,8 +794,10 @@ export default function InvoiceEditorPage() {
                     type="text"
                     value={finalDestination}
                     onChange={(e) => setFinalDestination(e.target.value)}
+                    onFocus={(e) => e.target.select()}
+                    onClick={(e) => e.target.select()}
                     placeholder="e.g. KHOR AL FAKKAN"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-xl text-xs"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-xl text-xs font-medium"
                   />
                 </div>
 
@@ -750,6 +809,8 @@ export default function InvoiceEditorPage() {
                     type="text"
                     value={etd}
                     onChange={(e) => setEtd(e.target.value)}
+                    onFocus={(e) => e.target.select()}
+                    onClick={(e) => e.target.select()}
                     placeholder="e.g. 29/07/2026"
                     className="w-full px-3 py-2 border border-gray-300 rounded-xl text-xs"
                   />
@@ -763,6 +824,8 @@ export default function InvoiceEditorPage() {
                     type="text"
                     value={eta}
                     onChange={(e) => setEta(e.target.value)}
+                    onFocus={(e) => e.target.select()}
+                    onClick={(e) => e.target.select()}
                     placeholder="e.g. 12/08/2026"
                     className="w-full px-3 py-2 border border-gray-300 rounded-xl text-xs"
                   />
@@ -776,6 +839,8 @@ export default function InvoiceEditorPage() {
                     type="text"
                     value={stack}
                     onChange={(e) => setStack(e.target.value)}
+                    onFocus={(e) => e.target.select()}
+                    onClick={(e) => e.target.select()}
                     placeholder="e.g. 25/07 to 26/07 06:00 P"
                     className="w-full px-3 py-2 border border-gray-300 rounded-xl text-xs"
                   />
@@ -949,34 +1014,61 @@ export default function InvoiceEditorPage() {
                 ))}
               </div>
 
-              {/* Freight Add-on */}
-              <div className="pt-2 border-t border-gray-200">
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                  <div className="sm:col-span-2">
-                    <label className="block text-xs font-medium text-gray-700 mb-1">
-                      Freight Description
-                    </label>
-                    <input
-                      type="text"
-                      value={freightDescription}
-                      onChange={(e) => setFreightDescription(e.target.value)}
-                      className="w-full px-3 py-1.5 border border-gray-300 rounded-xl text-xs"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-medium text-gray-700 mb-1">
-                      Freight Cost ($)
-                    </label>
-                    <input
-                      type="number"
-                      step="0.01"
-                      value={freightCharges !== undefined ? freightCharges : ''}
-                      onChange={(e) => setFreightCharges(e.target.value === '' ? '' : Number(e.target.value))}
-                      onFocus={(e) => e.target.select()}
-                      onClick={(e) => e.target.select()}
-                      className="w-full px-3 py-1.5 border border-gray-300 rounded-xl text-xs font-semibold"
-                    />
-                  </div>
+              {/* Additional Charges / Freight Section */}
+              <div className="pt-3 border-t border-gray-200 space-y-3">
+                <div className="flex justify-between items-center">
+                  <label className="block text-xs font-bold text-gray-800">
+                    Freight &amp; Additional Charges
+                  </label>
+                  <button
+                    type="button"
+                    onClick={handleAddAdditionalCharge}
+                    className="inline-flex items-center gap-1 text-xs text-brand-700 hover:text-brand-800 font-semibold px-2 py-1 rounded-lg hover:bg-brand-50 transition-colors"
+                  >
+                    <Plus className="w-3.5 h-3.5" />
+                    <span>+ Add Option</span>
+                  </button>
+                </div>
+
+                <div className="space-y-2">
+                  {additionalCharges.map((charge, cIdx) => (
+                    <div key={cIdx} className="grid grid-cols-1 sm:grid-cols-12 gap-2 items-center bg-gray-50/70 p-2.5 rounded-xl border border-gray-200">
+                      <div className="sm:col-span-8">
+                        <label className="block text-[10px] text-gray-500 mb-0.5">Freight / Charge Description</label>
+                        <input
+                          type="text"
+                          value={charge.description}
+                          onChange={(e) => handleAdditionalChargeChange(cIdx, 'description', e.target.value)}
+                          onFocus={(e) => e.target.select()}
+                          onClick={(e) => e.target.select()}
+                          placeholder="e.g. Free time at destination added cost for Freight"
+                          className="w-full px-3 py-1.5 border border-gray-300 rounded-lg text-xs bg-white"
+                        />
+                      </div>
+                      <div className="sm:col-span-3">
+                        <label className="block text-[10px] text-gray-500 mb-0.5">Cost ($)</label>
+                        <input
+                          type="number"
+                          step="0.01"
+                          value={charge.amount !== undefined ? charge.amount : ''}
+                          onChange={(e) => handleAdditionalChargeChange(cIdx, 'amount', e.target.value)}
+                          onFocus={(e) => e.target.select()}
+                          onClick={(e) => e.target.select()}
+                          className="w-full px-3 py-1.5 border border-gray-300 rounded-lg text-xs font-semibold bg-white"
+                        />
+                      </div>
+                      <div className="sm:col-span-1 flex justify-end items-end pt-3 sm:pt-4">
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveAdditionalCharge(cIdx)}
+                          className="p-1.5 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors"
+                          title="Remove charge option"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </div>
             </div>

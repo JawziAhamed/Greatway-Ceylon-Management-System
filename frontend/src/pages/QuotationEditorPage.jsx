@@ -38,6 +38,7 @@ export default function QuotationEditorPage() {
   const [customerId, setCustomerId] = useState('');
   const [currency, setCurrency] = useState('USD');
   const [incoterms, setIncoterms] = useState('CIF');
+  const [finalDestination, setFinalDestination] = useState('');
   const [vesselDetails, setVesselDetails] = useState(
     'Line : MAERSK  Transit time : 05 DAYS DIRECT | FREE TIME AT DESTINATION : 7 DAYS'
   );
@@ -62,8 +63,39 @@ export default function QuotationEditorPage() {
   // Freight and financial adjustments
   const [freightDescription, setFreightDescription] = useState('Free time at destination added cost for Freight');
   const [freightCost, setFreightCost] = useState(250.00);
+  const [additionalCharges, setAdditionalCharges] = useState([
+    { description: 'Free time at destination added cost for Freight', amount: 250.00 },
+  ]);
   const [discount, setDiscount] = useState(0);
   const [tax, setTax] = useState(0);
+
+  const handleAddAdditionalCharge = () => {
+    setAdditionalCharges([...additionalCharges, { description: '', amount: 0 }]);
+  };
+
+  const handleRemoveAdditionalCharge = (index) => {
+    if (additionalCharges.length <= 1) {
+      setAdditionalCharges([{ description: '', amount: 0 }]);
+      return;
+    }
+    setAdditionalCharges(additionalCharges.filter((_, i) => i !== index));
+  };
+
+  const handleAdditionalChargeChange = (index, field, value) => {
+    const updated = [...additionalCharges];
+    updated[index] = {
+      ...updated[index],
+      [field]: field === 'amount' ? (value === '' ? '' : Number(value)) : value,
+    };
+    setAdditionalCharges(updated);
+  };
+
+  // Signatory State
+  const [signatory, setSignatory] = useState({
+    name: 'Authorized Signatory',
+    designation: 'Chief Executive Officer',
+    company: 'Greatway Ceylon (Pvt) Ltd',
+  });
 
   // Terms & Conditions
   const [paymentTerms, setPaymentTerms] = useState(
@@ -107,13 +139,40 @@ export default function QuotationEditorPage() {
             );
             setCustomerId(q.customer?._id || q.customer || '');
             setCurrency(q.currency || 'USD');
+            setFinalDestination(q.finalDestination || '');
             setVesselDetails(q.vesselDetails || '');
             setDepartureDateText(q.departureDateText || '');
             setStatus(q.status || 'Draft');
             setNotes(q.notes || '');
             setItems(q.items || []);
-            setFreightDescription(q.freightDescription || '');
-            setFreightCost(q.freightCost || 0);
+            if (q.additionalCharges && q.additionalCharges.length > 0) {
+              setAdditionalCharges(q.additionalCharges);
+              setFreightCost(q.additionalCharges.reduce((s, c) => s + (Number(c.amount) || 0), 0));
+              setFreightDescription(q.additionalCharges[0]?.description || '');
+            } else if (q.freightCost || q.freightDescription) {
+              setAdditionalCharges([{
+                description: q.freightDescription || 'Free time at destination added cost for Freight',
+                amount: Number(q.freightCost) || 0,
+              }]);
+              setFreightDescription(q.freightDescription || '');
+              setFreightCost(q.freightCost || 0);
+            } else {
+              setAdditionalCharges([]);
+              setFreightDescription('');
+              setFreightCost(0);
+            }
+            if (q.signatory) {
+              setSignatory({
+                name: q.signatory.name || 'Authorized Signatory',
+                designation: q.signatory.designation || 'Chief Executive Officer',
+                company: q.signatory.company || settings?.companyName || 'Greatway Ceylon (Pvt) Ltd',
+              });
+            } else if (settings?.companyName) {
+              setSignatory((prev) => ({
+                ...prev,
+                company: settings.companyName,
+              }));
+            }
             setDiscount(q.discount || 0);
             setTax(q.tax || 0);
             setPaymentTerms(q.paymentTerms || '');
@@ -134,6 +193,12 @@ export default function QuotationEditorPage() {
           if (settings?.quotationSettings?.defaultSpecificTerms) {
             setSpecificTerms(settings.quotationSettings.defaultSpecificTerms);
           }
+          if (settings?.companyName) {
+            setSignatory((prev) => ({
+              ...prev,
+              company: settings.companyName,
+            }));
+          }
           // Default to first customer if available
           if (cRes.data.data.length > 0) {
             setCustomerId(cRes.data.data[0]._id);
@@ -152,7 +217,8 @@ export default function QuotationEditorPage() {
   // Calculations
   const totalCartons = items.reduce((sum, item) => sum + (Number(item.quantityCartons) || 0), 0);
   const itemsSubtotal = items.reduce((sum, item) => sum + (Number(item.lineTotal) || 0), 0);
-  const subtotal = Number((itemsSubtotal + (Number(freightCost) || 0)).toFixed(2));
+  const totalAdditionalCharges = additionalCharges.reduce((sum, c) => sum + (Number(c.amount) || 0), 0);
+  const subtotal = Number((itemsSubtotal + totalAdditionalCharges).toFixed(2));
   const grandTotal = Number((subtotal - (Number(discount) || 0) + (Number(tax) || 0)).toFixed(2));
 
   // Item row change handler
@@ -246,6 +312,7 @@ export default function QuotationEditorPage() {
         validUntil: validUntil || undefined,
         customerId,
         currency,
+        finalDestination,
         vesselDetails,
         departureDateText,
         items: items.map((it) => ({
@@ -255,8 +322,9 @@ export default function QuotationEditorPage() {
           boxRate: it.boxRate === '' ? 0 : Number(it.boxRate) || 0,
           lineTotal: it.lineTotal === '' ? 0 : Number(it.lineTotal) || 0,
         })),
-        freightDescription,
-        freightCost: Number(freightCost) || 0,
+        additionalCharges,
+        freightDescription: additionalCharges[0]?.description || freightDescription,
+        freightCost: totalAdditionalCharges,
         discount: Number(discount) || 0,
         tax: Number(tax) || 0,
         paymentTerms,
@@ -264,6 +332,7 @@ export default function QuotationEditorPage() {
         incoterms: getIncotermCode(incoterms),
         saleType: saleType || 'Own Sale',
         specificTerms,
+        signatory,
         status,
         notes,
       };
@@ -298,12 +367,14 @@ export default function QuotationEditorPage() {
     buyerSnapshot: selectedCustomerObj || { companyName: 'Select Customer' },
     currency,
     incoterms,
+    finalDestination,
     saleType,
     vesselDetails,
     departureDateText,
     items,
-    freightDescription,
-    freightCost: Number(freightCost) || 0,
+    additionalCharges,
+    freightDescription: additionalCharges[0]?.description || freightDescription,
+    freightCost: totalAdditionalCharges,
     totalCartons,
     subtotal,
     discount: Number(discount) || 0,
@@ -313,10 +384,7 @@ export default function QuotationEditorPage() {
     deliveryTerms,
     specificTerms,
     status,
-    signatory: {
-      name: settings?.defaultSignatory?.name || 'C C Ranesh Anthony',
-      designation: settings?.defaultSignatory?.designation || 'Chief Executive Officer',
-    },
+    signatory,
   };
 
   if (loading) {
@@ -565,12 +633,28 @@ export default function QuotationEditorPage() {
               <div className="space-y-3">
                 <div>
                   <label className="block text-xs font-semibold text-gray-700 mb-1">
+                    Final Destination / Port
+                  </label>
+                  <input
+                    type="text"
+                    value={finalDestination}
+                    onChange={(e) => setFinalDestination(e.target.value)}
+                    onFocus={(e) => e.target.select()}
+                    onClick={(e) => e.target.select()}
+                    placeholder="e.g. Salalah, Oman or Destination Port"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-xl text-xs font-medium"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-gray-700 mb-1">
                     Vessel Line &amp; Transit Terms
                   </label>
                   <input
                     type="text"
                     value={vesselDetails}
                     onChange={(e) => setVesselDetails(e.target.value)}
+                    onFocus={(e) => e.target.select()}
+                    onClick={(e) => e.target.select()}
                     placeholder="e.g. Line : MAERSK Transit time : 05 DAYS DIRECT | FREE TIME AT DESTINATION : 7 DAYS"
                     className="w-full px-3 py-2 border border-gray-300 rounded-xl text-xs"
                   />
@@ -583,6 +667,8 @@ export default function QuotationEditorPage() {
                     type="text"
                     value={departureDateText}
                     onChange={(e) => setDepartureDateText(e.target.value)}
+                    onFocus={(e) => e.target.select()}
+                    onClick={(e) => e.target.select()}
                     placeholder="e.g. 22nd September 2026"
                     className="w-full px-3 py-2 border border-gray-300 rounded-xl text-xs"
                   />
@@ -724,35 +810,61 @@ export default function QuotationEditorPage() {
                 ))}
               </div>
 
-              {/* Extra Freight / Charge Row */}
-              <div className="pt-2 border-t border-gray-200">
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                  <div className="sm:col-span-2">
-                    <label className="block text-xs font-medium text-gray-700 mb-1">
-                      Freight / Additional Charge Description
-                    </label>
-                    <input
-                      type="text"
-                      value={freightDescription}
-                      onChange={(e) => setFreightDescription(e.target.value)}
-                      placeholder="e.g. Free time at destination added cost for Freight"
-                      className="w-full px-3 py-1.5 border border-gray-300 rounded-xl text-xs"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-medium text-gray-700 mb-1">
-                      Freight Amount ($)
-                    </label>
-                    <input
-                      type="number"
-                      step="0.01"
-                      value={freightCost !== undefined ? freightCost : ''}
-                      onChange={(e) => setFreightCost(e.target.value === '' ? '' : Number(e.target.value))}
-                      onFocus={(e) => e.target.select()}
-                      onClick={(e) => e.target.select()}
-                      className="w-full px-3 py-1.5 border border-gray-300 rounded-xl text-xs font-semibold"
-                    />
-                  </div>
+              {/* Additional Charges / Freight Section */}
+              <div className="pt-3 border-t border-gray-200 space-y-3">
+                <div className="flex justify-between items-center">
+                  <label className="block text-xs font-bold text-gray-800">
+                    Freight &amp; Additional Charges
+                  </label>
+                  <button
+                    type="button"
+                    onClick={handleAddAdditionalCharge}
+                    className="inline-flex items-center gap-1 text-xs text-brand-700 hover:text-brand-800 font-semibold px-2 py-1 rounded-lg hover:bg-brand-50 transition-colors"
+                  >
+                    <Plus className="w-3.5 h-3.5" />
+                    <span>+ Add Option</span>
+                  </button>
+                </div>
+
+                <div className="space-y-2">
+                  {additionalCharges.map((charge, cIdx) => (
+                    <div key={cIdx} className="grid grid-cols-1 sm:grid-cols-12 gap-2 items-center bg-gray-50/70 p-2.5 rounded-xl border border-gray-200">
+                      <div className="sm:col-span-8">
+                        <label className="block text-[10px] text-gray-500 mb-0.5">Freight / Charge Description</label>
+                        <input
+                          type="text"
+                          value={charge.description}
+                          onChange={(e) => handleAdditionalChargeChange(cIdx, 'description', e.target.value)}
+                          onFocus={(e) => e.target.select()}
+                          onClick={(e) => e.target.select()}
+                          placeholder="e.g. Free time at destination added cost for Freight"
+                          className="w-full px-3 py-1.5 border border-gray-300 rounded-lg text-xs bg-white"
+                        />
+                      </div>
+                      <div className="sm:col-span-3">
+                        <label className="block text-[10px] text-gray-500 mb-0.5">Cost ($)</label>
+                        <input
+                          type="number"
+                          step="0.01"
+                          value={charge.amount !== undefined ? charge.amount : ''}
+                          onChange={(e) => handleAdditionalChargeChange(cIdx, 'amount', e.target.value)}
+                          onFocus={(e) => e.target.select()}
+                          onClick={(e) => e.target.select()}
+                          className="w-full px-3 py-1.5 border border-gray-300 rounded-lg text-xs font-semibold bg-white"
+                        />
+                      </div>
+                      <div className="sm:col-span-1 flex justify-end items-end pt-3 sm:pt-4">
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveAdditionalCharge(cIdx)}
+                          className="p-1.5 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors"
+                          title="Remove charge option"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </div>
             </div>
@@ -789,6 +901,59 @@ export default function QuotationEditorPage() {
                 </div>
               </div>
             </div>
+
+            {/* Signatory & Authorization */}
+            <div className="bg-white rounded-2xl border border-gray-200 p-5 shadow-sm space-y-4">
+              <h2 className="text-sm font-bold text-gray-900 border-b border-gray-100 pb-2.5 flex items-center gap-2">
+                <FileCheck className="w-4 h-4 text-brand-700" />
+                <span>Signatory &amp; Authorization</span>
+              </h2>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div>
+                  <label className="block text-xs font-semibold text-gray-700 mb-1">
+                    Signatory Title / Name
+                  </label>
+                  <input
+                    type="text"
+                    value={signatory.name}
+                    onChange={(e) => setSignatory({ ...signatory, name: e.target.value })}
+                    onFocus={(e) => e.target.select()}
+                    onClick={(e) => e.target.select()}
+                    placeholder="e.g. Authorized Signatory"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-xl text-xs font-medium"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-gray-700 mb-1">
+                    Designation
+                  </label>
+                  <input
+                    type="text"
+                    value={signatory.designation}
+                    onChange={(e) => setSignatory({ ...signatory, designation: e.target.value })}
+                    onFocus={(e) => e.target.select()}
+                    onClick={(e) => e.target.select()}
+                    placeholder="e.g. Chief Executive Officer"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-xl text-xs"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-gray-700 mb-1">
+                    Company Name
+                  </label>
+                  <input
+                    type="text"
+                    value={signatory.company}
+                    onChange={(e) => setSignatory({ ...signatory, company: e.target.value })}
+                    onFocus={(e) => e.target.select()}
+                    onClick={(e) => e.target.select()}
+                    placeholder="e.g. Greatway Ceylon (Pvt) Ltd"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-xl text-xs font-medium"
+                  />
+                </div>
+              </div>
+            </div>
           </div>
 
           {/* Right Column: Calculations Summary */}
@@ -810,7 +975,7 @@ export default function QuotationEditorPage() {
                 </div>
                 <div className="flex justify-between text-gray-600">
                   <span>Freight / Destination Cost:</span>
-                  <span className="font-semibold text-gray-900">$ {formatCurrency(freightCost)}</span>
+                  <span className="font-semibold text-gray-900">$ {formatCurrency(totalAdditionalCharges)}</span>
                 </div>
 
                 <div className="border-t border-gray-100 pt-2 space-y-2">

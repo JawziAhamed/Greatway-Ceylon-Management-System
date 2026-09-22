@@ -181,7 +181,7 @@ export default function PerformaInvoiceDocument({ invoice, settings = {} }) {
                 </div>
                 <div className="flex justify-end items-baseline">
                   <span className="font-bold text-gray-900 mr-2 whitespace-nowrap">Final Destination:</span>
-                  <span className="font-normal text-gray-900 w-44 text-left">{invoice.finalDestination || invoice.portOfDischarge || 'KHOR AL FAKKAN'}</span>
+                  <span className="font-normal text-gray-900 w-44 text-left">{invoice.finalDestination !== undefined && invoice.finalDestination !== '' ? invoice.finalDestination : (invoice.portOfDischarge || 'KHOR AL FAKKAN')}</span>
                 </div>
                 <div className="flex justify-end items-baseline">
                   <span className="font-bold text-gray-900 mr-2 whitespace-nowrap">ETD:</span>
@@ -248,7 +248,18 @@ export default function PerformaInvoiceDocument({ invoice, settings = {} }) {
               </tr>
             ))}
 
-            {(Number(invoice.freightCharges || 0) > 0 || Number(invoice.freightCost || 0) > 0) && (
+            {invoice.additionalCharges && invoice.additionalCharges.length > 0 ? (
+              invoice.additionalCharges.filter((c) => Number(c.amount || 0) > 0 || c.description).map((charge, cIdx) => (
+                <tr key={`charge-${cIdx}`}>
+                  <td colSpan={7} className="border border-gray-400 py-1 px-2 text-left italic text-gray-700">
+                    {charge.description || 'Additional Charge / Freight'}
+                  </td>
+                  <td className="border border-gray-400 py-1 px-2 text-right font-normal">
+                    {currSym} {formatCurrency(charge.amount)}
+                  </td>
+                </tr>
+              ))
+            ) : (Number(invoice.freightCharges || 0) > 0 || Number(invoice.freightCost || 0) > 0) ? (
               <tr>
                 <td colSpan={7} className="border border-gray-400 py-1 px-2 text-left italic text-gray-700">
                   {invoice.freightDescription || 'Free time at destination added cost for Freight'}
@@ -257,7 +268,7 @@ export default function PerformaInvoiceDocument({ invoice, settings = {} }) {
                   {currSym} {formatCurrency(invoice.freightCharges || invoice.freightCost)}
                 </td>
               </tr>
-            )}
+            ) : null}
 
             <tr className="font-bold bg-white">
               <td colSpan={6} className="border border-gray-400 py-1.5 px-3 text-left font-bold">

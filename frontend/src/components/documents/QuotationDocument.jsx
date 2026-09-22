@@ -134,7 +134,7 @@ export default function QuotationDocument({ quotation, settings = {} }) {
               </tr>
               <tr>
                 <td className="font-bold text-gray-700 pr-3 py-0.5">INCOTERMS</td>
-                <td className="py-0.5">: <span className="font-bold">{formatIncotermDisplay(quotation.incoterms, buyer.country || 'Destination Port')}</span></td>
+                <td className="py-0.5">: <span className="font-bold">{formatIncotermDisplay(quotation.incoterms, quotation.finalDestination || buyer.country || 'Destination Port')}</span></td>
               </tr>
               {quotation.status && (
                 <tr>
@@ -177,7 +177,20 @@ export default function QuotationDocument({ quotation, settings = {} }) {
             </tr>
           ))}
 
-          {Number(quotation.freightCost || 0) > 0 && (
+          {quotation.additionalCharges && quotation.additionalCharges.length > 0 ? (
+            quotation.additionalCharges
+              .filter((c) => Number(c.amount || 0) > 0 || c.description)
+              .map((charge, idx) => (
+                <tr key={`charge-${idx}`}>
+                  <td colSpan={7} className="border border-gray-400 py-1 px-2 italic text-gray-700">
+                    {charge.description || 'Additional Charge / Freight'}
+                  </td>
+                  <td className="border border-gray-400 py-1 px-2 text-right font-medium">
+                    $ {formatCurrency(charge.amount)}
+                  </td>
+                </tr>
+              ))
+          ) : Number(quotation.freightCost || 0) > 0 ? (
             <tr>
               <td colSpan={7} className="border border-gray-400 py-1 px-2 italic text-gray-700">
                 {quotation.freightDescription || 'Free time at destination added cost for Freight'}
@@ -186,7 +199,7 @@ export default function QuotationDocument({ quotation, settings = {} }) {
                 $ {formatCurrency(quotation.freightCost)}
               </td>
             </tr>
-          )}
+          ) : null}
 
           <tr className="font-bold bg-white">
             <td colSpan={6} className="border border-gray-400 py-1.5 px-3 text-left font-bold">
@@ -226,12 +239,12 @@ export default function QuotationDocument({ quotation, settings = {} }) {
           <div className="mb-6 font-mono text-gray-400 tracking-wider">...................................</div>
           <div className="font-bold text-gray-900">{quotation.signatory?.name || 'Authorized Signatory'}</div>
           <div className="text-gray-600">{quotation.signatory?.designation || 'Chief Executive Officer'}</div>
-          <div className="font-bold text-[#14663e]">{companyName}</div>
+          <div className="font-bold text-[#14663e]">{quotation.signatory?.company || companyName}</div>
         </div>
 
         <div className="border border-dashed border-[#14663e] rounded p-2 text-center text-[9.5px] text-[#14663e]">
           <div className="font-semibold uppercase tracking-wider">Official Company Seal</div>
-          <div className="font-bold">{companyName}</div>
+          <div className="font-bold">{quotation.signatory?.company || companyName}</div>
           <div>{regNo}</div>
         </div>
       </div>

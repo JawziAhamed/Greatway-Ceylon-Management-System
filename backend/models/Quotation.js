@@ -54,6 +54,10 @@ const quotationSchema = new mongoose.Schema(
       default: '',
     },
     items: [quotationItemSchema],
+    finalDestination: {
+      type: String,
+      default: '',
+    },
     freightDescription: {
       type: String,
       default: 'Free time at destination added cost for Freight',
@@ -62,6 +66,12 @@ const quotationSchema = new mongoose.Schema(
       type: Number,
       default: 0,
     },
+    additionalCharges: [
+      {
+        description: { type: String, default: '' },
+        amount: { type: Number, default: 0 },
+      },
+    ],
     totalCartons: {
       type: Number,
       default: 0,

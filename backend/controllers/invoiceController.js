@@ -141,6 +141,7 @@ const createInvoice = async (req, res) => {
       items = [],
       freightDescription,
       freightCharges = 0,
+      additionalCharges = [],
       otherCharges = 0,
       discount = 0,
       tax = 0,
@@ -185,7 +186,13 @@ const createInvoice = async (req, res) => {
       });
     }
 
-    const freight = Number(freightCharges) || 0;
+    let freight = Number(freightCharges) || 0;
+    if (Array.isArray(additionalCharges) && additionalCharges.length > 0) {
+      const sumAdditional = additionalCharges.reduce((s, c) => s + (Number(c.amount) || 0), 0);
+      if (sumAdditional > 0 || freight === 0) {
+        freight = sumAdditional;
+      }
+    }
     const others = Number(otherCharges) || 0;
     const subtotal = Number((itemsSubtotal + freight + others).toFixed(2));
     const discountVal = Number(discount) || 0;
@@ -226,6 +233,7 @@ const createInvoice = async (req, res) => {
       items: calculatedItems,
       freightDescription: freightDescription || 'Free time at destination added cost for Freight',
       freightCharges: freight,
+      additionalCharges: Array.isArray(additionalCharges) ? additionalCharges : [],
       otherCharges: others,
       subtotal,
       discount: discountVal,
@@ -280,6 +288,7 @@ const updateInvoice = async (req, res) => {
       items,
       freightDescription,
       freightCharges,
+      additionalCharges,
       otherCharges,
       discount,
       tax,
@@ -341,7 +350,14 @@ const updateInvoice = async (req, res) => {
     }
 
     const curr = currency || existing.currency || 'USD';
-    const freight = freightCharges !== undefined ? Number(freightCharges) : existing.freightCharges;
+    let freight = freightCharges !== undefined ? Number(freightCharges) : existing.freightCharges;
+    if (additionalCharges !== undefined && Array.isArray(additionalCharges)) {
+      const sumAdditional = additionalCharges.reduce((s, c) => s + (Number(c.amount) || 0), 0);
+      if (sumAdditional > 0 || freightCharges === undefined || freightCharges === 0) {
+        freight = sumAdditional;
+      }
+      existing.additionalCharges = additionalCharges;
+    }
     const others = otherCharges !== undefined ? Number(otherCharges) : existing.otherCharges;
     const subtotal = Number((itemsSubtotal + freight + others).toFixed(2));
     const discountVal = discount !== undefined ? Number(discount) : existing.discount;
