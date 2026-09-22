@@ -17,6 +17,16 @@ import DocumentPreviewModal from '../components/documents/DocumentPreviewModal';
 import { INCOTERMS_OPTIONS, getIncotermCode } from '../utils/incoterms';
 import axiosClient from '../api/axiosClient';
 
+export const DEFAULT_SPECIFIC_TERMS = [
+  'All prices are based on CIF terms.',
+  'Prices are subject to change due to changes in Sri Lankan market conditions.',
+  "Delivery Terms: The quoted CIF rates are applicable only up to Salalah Port, Oman. Transportation, customs clearance, and delivery from Salalah Port to customer's final location shall be arranged and borne by customer.",
+  'Approximate order quantity: Number of cartons - 2,950',
+  'Payment terms: 50% advance payment on PO, 40% payment upon shipment handover to CMB Port, 10% within 3 days of receiving the shipment at customer\'s warehouse.',
+  'Damage Liability: Damages should be reported within 10 days of the arrival of goods at the destination port (Refer to attachment 01 for general terms and conditions). Greatway Ceylon will not accept liability if goods are not cleared within 48 hours or temperature gauge reports are missing.',
+  'The standard terms and conditions along with the product specification sheet, herewith attached (Attachment 01).',
+];
+
 export default function QuotationEditorPage() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -104,7 +114,33 @@ export default function QuotationEditorPage() {
   const [deliveryTerms, setDeliveryTerms] = useState(
     "The quoted CIF rates are applicable only up to Salalah Port, Oman. Transportation, customs clearance, and delivery from Salalah Port to the customer's final location shall be arranged and borne by the customer."
   );
-  const [specificTerms, setSpecificTerms] = useState([]);
+  const [specificTerms, setSpecificTerms] = useState(DEFAULT_SPECIFIC_TERMS);
+
+  const handleAddSpecificTerm = () => {
+    setSpecificTerms([...specificTerms, '']);
+  };
+
+  const handleRemoveSpecificTerm = (index) => {
+    if (specificTerms.length <= 1) {
+      setSpecificTerms(['']);
+      return;
+    }
+    setSpecificTerms(specificTerms.filter((_, i) => i !== index));
+  };
+
+  const handleSpecificTermChange = (index, value) => {
+    const updated = [...specificTerms];
+    updated[index] = value;
+    setSpecificTerms(updated);
+  };
+
+  const handleResetSpecificTerms = () => {
+    if (settings?.quotationSettings?.defaultSpecificTerms && settings.quotationSettings.defaultSpecificTerms.length > 0) {
+      setSpecificTerms(settings.quotationSettings.defaultSpecificTerms);
+    } else {
+      setSpecificTerms(DEFAULT_SPECIFIC_TERMS);
+    }
+  };
 
   // Quick Customer Creation modal inline
   const [showNewCustomerModal, setShowNewCustomerModal] = useState(false);
@@ -179,7 +215,13 @@ export default function QuotationEditorPage() {
             setDeliveryTerms(q.deliveryTerms || '');
             setIncoterms(q.incoterms || 'CIF');
             setSaleType(q.saleType || 'Own Sale');
-            setSpecificTerms(q.specificTerms || []);
+            if (q.specificTerms && q.specificTerms.length > 0) {
+              setSpecificTerms(q.specificTerms);
+            } else if (settings?.quotationSettings?.defaultSpecificTerms && settings.quotationSettings.defaultSpecificTerms.length > 0) {
+              setSpecificTerms(settings.quotationSettings.defaultSpecificTerms);
+            } else {
+              setSpecificTerms(DEFAULT_SPECIFIC_TERMS);
+            }
           }
         } else {
           // Get next quotation number
@@ -190,8 +232,10 @@ export default function QuotationEditorPage() {
           if (settings?.quotationSettings?.defaultIncoterms) {
             setIncoterms(settings.quotationSettings.defaultIncoterms);
           }
-          if (settings?.quotationSettings?.defaultSpecificTerms) {
+          if (settings?.quotationSettings?.defaultSpecificTerms && settings.quotationSettings.defaultSpecificTerms.length > 0) {
             setSpecificTerms(settings.quotationSettings.defaultSpecificTerms);
+          } else {
+            setSpecificTerms(DEFAULT_SPECIFIC_TERMS);
           }
           if (settings?.companyName) {
             setSignatory((prev) => ({
@@ -331,7 +375,7 @@ export default function QuotationEditorPage() {
         deliveryTerms,
         incoterms: getIncotermCode(incoterms),
         saleType: saleType || 'Own Sale',
-        specificTerms,
+        specificTerms: specificTerms.filter((t) => t && t.trim()),
         signatory,
         status,
         notes,
@@ -382,7 +426,7 @@ export default function QuotationEditorPage() {
     grandTotal,
     paymentTerms,
     deliveryTerms,
-    specificTerms,
+    specificTerms: specificTerms.filter((t) => t && t.trim()),
     status,
     signatory,
   };
@@ -884,7 +928,9 @@ export default function QuotationEditorPage() {
                     rows={2}
                     value={paymentTerms}
                     onChange={(e) => setPaymentTerms(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-xl text-xs"
+                    onFocus={(e) => e.target.select()}
+                    onClick={(e) => e.target.select()}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-xl text-xs focus:ring-1 focus:ring-brand-700"
                   />
                 </div>
 
@@ -896,9 +942,76 @@ export default function QuotationEditorPage() {
                     rows={2}
                     value={deliveryTerms}
                     onChange={(e) => setDeliveryTerms(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-xl text-xs"
+                    onFocus={(e) => e.target.select()}
+                    onClick={(e) => e.target.select()}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-xl text-xs focus:ring-1 focus:ring-brand-700"
                   />
                 </div>
+              </div>
+            </div>
+
+            {/* Specific Terms and Conditions (Points-wise) */}
+            <div className="bg-white rounded-2xl border border-gray-200 p-5 shadow-sm space-y-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-gray-100 pb-2.5 gap-2">
+                <div>
+                  <h2 className="text-sm font-bold text-gray-900 flex items-center gap-2">
+                    <span>Specific Terms and Conditions</span>
+                    <span className="text-[11px] font-normal text-brand-800 bg-brand-50 border border-brand-200 px-2 py-0.5 rounded-full">
+                      {specificTerms.length} Points
+                    </span>
+                  </h2>
+                  <p className="text-[11px] text-gray-500 mt-0.5">
+                    Add or edit quotation terms point-by-point. Each point appears numbered under "Specific Terms and Conditions" on the quotation document and PDF.
+                  </p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={handleResetSpecificTerms}
+                    className="text-xs px-2.5 py-1 text-gray-600 hover:text-gray-900 border border-gray-200 hover:bg-gray-50 rounded-lg transition font-medium"
+                    title="Reset to default standard terms"
+                  >
+                    Reset Defaults
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleAddSpecificTerm}
+                    className="inline-flex items-center gap-1.5 px-3 py-1 bg-brand-800 hover:bg-brand-900 text-white rounded-lg text-xs font-semibold shadow-sm transition"
+                  >
+                    <Plus className="w-3.5 h-3.5" />
+                    <span>Add Point</span>
+                  </button>
+                </div>
+              </div>
+
+              <div className="space-y-2.5">
+                {specificTerms.map((term, index) => (
+                  <div key={index} className="flex items-start gap-2.5 group">
+                    <span className="shrink-0 w-6 h-6 mt-1.5 rounded-full bg-brand-50 text-brand-800 font-bold text-xs flex items-center justify-center border border-brand-200">
+                      {index + 1}
+                    </span>
+                    <div className="flex-1">
+                      <textarea
+                        rows={2}
+                        value={term}
+                        onChange={(e) => handleSpecificTermChange(index, e.target.value)}
+                        onFocus={(e) => e.target.select()}
+                        onClick={(e) => e.target.select()}
+                        placeholder={`Point ${index + 1}...`}
+                        className="w-full px-3 py-1.5 border border-gray-300 rounded-xl text-xs focus:ring-1 focus:ring-brand-700 focus:border-brand-700 leading-relaxed"
+                      />
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveSpecificTerm(index)}
+                      disabled={specificTerms.length <= 1}
+                      className="shrink-0 mt-1.5 p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition disabled:opacity-30"
+                      title="Remove Point"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                ))}
               </div>
             </div>
 

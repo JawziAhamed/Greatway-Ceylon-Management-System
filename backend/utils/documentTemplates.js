@@ -30,6 +30,16 @@ const getWatermarkBase64 = () => {
   return '';
 };
 
+const DEFAULT_SPECIFIC_TERMS = [
+  'All prices are based on CIF terms.',
+  'Prices are subject to change due to changes in Sri Lankan market conditions.',
+  "Delivery Terms: The quoted CIF rates are applicable only up to Salalah Port, Oman. Transportation, customs clearance, and delivery from Salalah Port to customer's final location shall be arranged and borne by customer.",
+  'Approximate order quantity: Number of cartons - 2,950',
+  'Payment terms: 50% advance payment on PO, 40% payment upon shipment handover to CMB Port, 10% within 3 days of receiving the shipment at customer\'s warehouse.',
+  'Damage Liability: Damages should be reported within 10 days of the arrival of goods at the destination port (Refer to attachment 01 for general terms and conditions). Greatway Ceylon will not accept liability if goods are not cleared within 48 hours or temperature gauge reports are missing.',
+  'The standard terms and conditions along with the product specification sheet, herewith attached (Attachment 01).',
+];
+
 // Generate Quotation HTML matching quotation_page_1.png
 const generateQuotationHTML = (quotation, settings = {}, logoBase64) => {
   const buyer =
@@ -78,10 +88,15 @@ const generateQuotationHTML = (quotation, settings = {}, logoBase64) => {
   `
       : '';
 
-  const specificTermsList = (quotation.specificTerms && quotation.specificTerms.length > 0
-    ? quotation.specificTerms
-    : (settings.quotationSettings?.defaultSpecificTerms || [])
-  )
+  const termsToUse =
+    quotation.specificTerms && quotation.specificTerms.length > 0
+      ? quotation.specificTerms
+      : settings.quotationSettings?.defaultSpecificTerms && settings.quotationSettings.defaultSpecificTerms.length > 0
+      ? settings.quotationSettings.defaultSpecificTerms
+      : DEFAULT_SPECIFIC_TERMS;
+
+  const specificTermsList = termsToUse
+    .filter((term) => term && String(term).trim())
     .map(
       (term, index) =>
         `<li style="margin-bottom: 3px; line-height: 1.35; font-size: 10px;">${term}</li>`
@@ -326,7 +341,7 @@ const generateQuotationHTML = (quotation, settings = {}, logoBase64) => {
           </tr>
           <tr>
             <td class="meta-label">INCOTERMS</td>
-            <td style="font-weight: bold;">: ${formatIncotermDisplay(quotation.incoterms, quotation.finalDestination || buyer.country || 'Destination Port')}</td>
+            <td style="font-weight: bold;">: ${getIncotermCode(quotation.incoterms) || quotation.incoterms || 'CIF'}</td>
           </tr>
           ${quotation.status ? `<tr><td class="meta-label">STATUS</td><td style="font-weight: bold; color: #14663e;">: ${quotation.status.toUpperCase()}</td></tr>` : ''}
         </table>

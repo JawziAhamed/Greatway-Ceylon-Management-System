@@ -97,18 +97,25 @@ const getNextNumber = async (req, res) => {
 
     const prefix = settings.quotationSettings?.prefix || 'GC-QTN';
     const year = new Date().getFullYear();
-    const nextSeq = settings.quotationSettings?.nextNumber || 1;
-    const seqPadded = String(nextSeq).padStart(4, '0');
-
+    let nextSeq = settings.quotationSettings?.nextNumber || 1;
     let format = settings.quotationSettings?.numberFormat || '{prefix}-{year}-{seq4}';
-    const number = format
-      .replace('{prefix}', prefix)
-      .replace('{year}', year)
-      .replace('{seq4}', seqPadded)
-      .replace('{seq}', nextSeq);
+
+    let number = '';
+    while (true) {
+      const seqPadded = String(nextSeq).padStart(4, '0');
+      number = format
+        .replace('{prefix}', prefix)
+        .replace('{year}', year)
+        .replace('{seq4}', seqPadded)
+        .replace('{seq}', nextSeq);
+      const exists = await Quotation.findOne({ quotationNumber: number });
+      if (!exists) break;
+      nextSeq++;
+    }
 
     res.json({ success: true, nextNumber: number });
   } catch (error) {
+    console.error('getNextNumber ERROR:', error);
     res.status(500).json({ success: false, message: error.message });
   }
 };
@@ -235,6 +242,7 @@ const createQuotation = async (req, res) => {
 
     res.status(201).json({ success: true, data: quotation });
   } catch (error) {
+    console.error('createQuotation ERROR:', error);
     res.status(500).json({ success: false, message: error.message });
   }
 };
@@ -355,7 +363,7 @@ const updateQuotation = async (req, res) => {
     existing.deliveryTerms = deliveryTerms !== undefined ? deliveryTerms : existing.deliveryTerms;
     existing.incoterms = incoterms || existing.incoterms;
     existing.saleType = req.body.saleType !== undefined ? req.body.saleType : (existing.saleType || 'Own Sale');
-    existing.specificTerms = specificTerms || existing.specificTerms;
+    existing.specificTerms = req.body.specificTerms !== undefined ? req.body.specificTerms : existing.specificTerms;
     if (signatory) {
       existing.signatory = {
         name: signatory.name || existing.signatory?.name || 'Authorized Signatory',
@@ -369,6 +377,7 @@ const updateQuotation = async (req, res) => {
     const saved = await existing.save();
     res.json({ success: true, data: saved });
   } catch (error) {
+    console.error('updateQuotation ERROR:', error);
     res.status(500).json({ success: false, message: error.message });
   }
 };

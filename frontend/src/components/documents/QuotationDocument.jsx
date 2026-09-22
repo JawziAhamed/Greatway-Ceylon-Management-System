@@ -2,7 +2,7 @@ import React from 'react';
 import logoImg from '../../assets/logo.png';
 import watermarkLogoImg from '../../assets/watermark_logo.png';
 import { resolveMediaUrl } from '../../api/axiosClient';
-import { formatIncotermDisplay } from '../../utils/incoterms';
+import { getIncotermCode } from '../../utils/incoterms';
 
 export const formatCurrency = (val) => {
   return Number(val || 0).toLocaleString('en-US', {
@@ -33,10 +33,11 @@ export default function QuotationDocument({ quotation, settings = {} }) {
   const regNo = safeSettings.registrationNumber || 'PV 00263042';
   const taxNo = safeSettings.taxNumber || '103406048 - 7000';
 
-  const specificTerms =
+  const specificTerms = (
     quotation.specificTerms && quotation.specificTerms.length > 0
       ? quotation.specificTerms
-      : safeSettings.quotationSettings?.defaultSpecificTerms || [];
+      : safeSettings.quotationSettings?.defaultSpecificTerms || []
+  ).filter((term) => term && String(term).trim());
 
   return (
     <div className="relative bg-white text-gray-900 p-8 max-w-[820px] mx-auto text-[11px] leading-relaxed shadow-md print:shadow-none print:p-0 print:max-w-none">
@@ -134,7 +135,7 @@ export default function QuotationDocument({ quotation, settings = {} }) {
               </tr>
               <tr>
                 <td className="font-bold text-gray-700 pr-3 py-0.5">INCOTERMS</td>
-                <td className="py-0.5">: <span className="font-bold">{formatIncotermDisplay(quotation.incoterms, quotation.finalDestination || buyer.country || 'Destination Port')}</span></td>
+                <td className="py-0.5">: <span className="font-bold">{getIncotermCode(quotation.incoterms) || quotation.incoterms || 'CIF'}</span></td>
               </tr>
               {quotation.status && (
                 <tr>
