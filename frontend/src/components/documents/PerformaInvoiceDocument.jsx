@@ -299,50 +299,51 @@ export default function PerformaInvoiceDocument({ invoice, settings = {}, onUplo
           </div>
         </div>
 
-        {/* Bank & Payment Details */}
-        <div className="mt-2 text-[9.5px] leading-tight">
-          <div className="text-gray-800 mb-0.5">
-            {invoice.paymentRoutingNote ||
-              "Payment should be made to our agent in the UAE, 'Greatway Ceylon Fruits and Vegetables Trading LLC'."}
-          </div>
+        {/* Bank & Payment Details + Signatory Area */}
+        <div className="mt-2 flex justify-between items-end gap-3 relative z-10">
+          {/* Bank & Payment Details */}
+          <div className="text-[9.5px] leading-tight flex-1 max-w-[62%]">
+            <div className="text-gray-800 mb-0.5">
+              {invoice.paymentRoutingNote ||
+                "Payment should be made to our agent in the UAE, 'Greatway Ceylon Fruits and Vegetables Trading LLC'."}
+            </div>
 
-          <div className="space-y-0.5 mt-0.5 font-mono text-[9.5px]">
-            <div className="flex">
-              <span className="w-28 text-gray-700">Account Name</span>
-              <span>: {bank.accountName || companyName}</span>
-            </div>
-            <div className="flex">
-              <span className="w-28 text-gray-700">Bank Name</span>
-              <span>: {bank.bankName || ''}</span>
-            </div>
-            <div className="flex">
-              <span className="w-28 text-gray-700">Bank Branch</span>
-              <span>: {bank.bankBranch || ''}</span>
-            </div>
-            <div className="flex">
-              <span className="w-28 text-gray-700">Account Number</span>
-              <span>: {bank.accountNumber || ''}</span>
-            </div>
-            <div className="flex">
-              <span className="w-28 text-gray-700">SWIFT</span>
-              <span>: {bank.swift || ''}</span>
-            </div>
-            {bank.iban && (
+            <div className="space-y-0.5 mt-0.5 font-mono text-[9.5px]">
               <div className="flex">
-                <span className="w-28 text-gray-700">IBAN</span>
-                <span>: {bank.iban}</span>
+                <span className="w-28 text-gray-700 shrink-0">Account Name</span>
+                <span>: {bank.accountName || companyName}</span>
               </div>
-            )}
-            <div className="flex">
-              <span className="w-28 text-gray-700">Currency</span>
-              <span>: {bank.currency || invoice.currency || 'USD'}</span>
+              <div className="flex">
+                <span className="w-28 text-gray-700 shrink-0">Bank Name</span>
+                <span>: {bank.bankName || ''}</span>
+              </div>
+              <div className="flex">
+                <span className="w-28 text-gray-700 shrink-0">Bank Branch</span>
+                <span>: {bank.bankBranch || ''}</span>
+              </div>
+              <div className="flex">
+                <span className="w-28 text-gray-700 shrink-0">Account Number</span>
+                <span>: {bank.accountNumber || ''}</span>
+              </div>
+              <div className="flex">
+                <span className="w-28 text-gray-700 shrink-0">SWIFT</span>
+                <span>: {bank.swift || ''}</span>
+              </div>
+              {bank.iban && (
+                <div className="flex">
+                  <span className="w-28 text-gray-700 shrink-0">IBAN</span>
+                  <span>: {bank.iban}</span>
+                </div>
+              )}
+              <div className="flex">
+                <span className="w-28 text-gray-700 shrink-0">Currency</span>
+                <span>: {bank.currency || invoice.currency || 'USD'}</span>
+              </div>
             </div>
           </div>
-        </div>
 
-        {/* Signatory Area */}
-        <div className="flex justify-end mt-1.5">
-          <div className="text-center w-56 relative z-10 group">
+          {/* Signatory Area at Right Bottom */}
+          <div className="text-center w-56 relative z-10 group shrink-0 pb-0.5">
             {/* Direct Device Upload Overlay (Hidden in PDF & Print) */}
             {onUploadSignature && (
               <label
