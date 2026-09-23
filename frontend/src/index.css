@@ -41,9 +41,15 @@
     width: 100% !important;
     max-width: 100% !important;
     margin: 0 !important;
-    padding: 10mm 12mm !important;
+    padding: 4mm 6mm !important;
     box-shadow: none !important;
     border: none !important;
     box-sizing: border-box !important;
+  }
+
+  .invoice-document-root,
+  .quotation-document-root {
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
   }
 }

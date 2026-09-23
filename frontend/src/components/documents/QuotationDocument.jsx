@@ -40,14 +40,14 @@ export default function QuotationDocument({ quotation, settings = {} }) {
   ).filter((term) => term && String(term).trim());
 
   return (
-    <div className="relative bg-white text-gray-900 p-8 max-w-[820px] mx-auto text-[11px] leading-relaxed shadow-md print:shadow-none print:p-0 print:max-w-none">
+    <div className="quotation-document-root relative bg-white text-gray-900 p-4 sm:p-5 max-w-[820px] mx-auto text-[10.5px] leading-snug shadow-md print:shadow-none print:p-0 print:max-w-none">
       {/* Header Row */}
-      <div className="flex justify-between items-start mb-3">
+      <div className="flex justify-between items-start mb-2">
         <div className="w-7/12">
           <h2 className="text-[#14663e] font-bold text-base leading-tight">
             {companyName}
           </h2>
-          <div className="text-[10.5px] text-gray-700 leading-snug mt-1">
+          <div className="text-[10px] text-gray-700 leading-snug mt-1">
             {companyAddress}
             <br />
             Email: {email} | Web: {website}
@@ -65,12 +65,12 @@ export default function QuotationDocument({ quotation, settings = {} }) {
       </div>
 
       {/* Document Title */}
-      <div className="text-center my-4">
-        <h1 className="text-[#14663e] text-xl font-bold tracking-wider">QUOTATION</h1>
+      <div className="text-center my-2">
+        <h1 className="text-[#14663e] text-lg font-bold tracking-wider">QUOTATION</h1>
       </div>
 
       {/* Meta Section */}
-      <div className="flex justify-between items-start mb-4">
+      <div className="flex justify-between items-start mb-3">
         <div className="w-7/12">
           <div className="text-[#14663e] font-bold text-xs uppercase mb-1">
             Buyer Details
@@ -235,15 +235,15 @@ export default function QuotationDocument({ quotation, settings = {} }) {
       </div>
 
       {/* Signatory & Seal */}
-      <div className="flex justify-between items-end my-4">
-        <div className="text-[10px]">
-          <div className="mb-6 font-mono text-gray-400 tracking-wider">...................................</div>
+      <div className="flex justify-between items-end my-3">
+        <div className="text-[9.5px]">
+          <div className="mb-4 font-mono text-gray-400 tracking-wider">...................................</div>
           <div className="font-bold text-gray-900">{quotation.signatory?.name || 'Authorized Signatory'}</div>
           <div className="text-gray-600">{quotation.signatory?.designation || 'Chief Executive Officer'}</div>
           <div className="font-bold text-[#14663e]">{quotation.signatory?.company || companyName}</div>
         </div>
 
-        <div className="border border-dashed border-[#14663e] rounded p-2 text-center text-[9.5px] text-[#14663e]">
+        <div className="border border-dashed border-[#14663e] rounded p-1.5 text-center text-[9px] text-[#14663e]">
           <div className="font-semibold uppercase tracking-wider">Official Company Seal</div>
           <div className="font-bold">{quotation.signatory?.company || companyName}</div>
           <div>{regNo}</div>
@@ -251,11 +251,11 @@ export default function QuotationDocument({ quotation, settings = {} }) {
       </div>
 
       {/* Customer Acknowledgement */}
-      <div className="border-t border-gray-800 pt-2 mt-3">
-        <div className="font-bold text-[10.5px] text-gray-900 mb-1">
+      <div className="border-t border-gray-800 pt-1.5 mt-2">
+        <div className="font-bold text-[10px] text-gray-900 mb-0.5">
           Customer Acknowledgement
         </div>
-        <p className="text-[9.5px] text-gray-700 leading-snug mb-2">
+        <p className="text-[9px] text-gray-700 leading-tight mb-1.5">
           We, <span className="font-bold">{buyer.companyName || 'the Buyer'}</span>, hereby acknowledge receipt and acceptance of the above quotation and attached terms and condition along with the product specification sheet (Attachment 01) and confirm our agreement to the terms and conditions stated herein.
         </p>
 

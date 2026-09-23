@@ -63,11 +63,11 @@ export default function PerformaInvoiceDocument({ invoice, settings = {} }) {
         ];
 
   return (
-    <div className="bg-white text-gray-900 p-8 max-w-[820px] mx-auto text-[11px] leading-relaxed shadow-md print:shadow-none print:p-0 print:max-w-none">
+    <div className="invoice-document-root bg-white text-gray-900 p-4 sm:p-5 max-w-[820px] mx-auto text-[10.5px] leading-snug shadow-md print:shadow-none print:p-0 print:max-w-none">
       {/* Outer Enclosing Frame matching the prototype */}
-      <div className="relative border-[1.5px] border-black p-4">
+      <div className="relative border-[1.5px] border-black p-3">
         {/* Header Section */}
-        <div className="flex justify-between items-start mb-3">
+        <div className="flex justify-between items-start mb-2">
           <div className="w-5/12">
             <img
               src={resolveMediaUrl(safeSettings.logoUrl) || logoImg}
@@ -286,19 +286,19 @@ export default function PerformaInvoiceDocument({ invoice, settings = {} }) {
 
         {/* Amount in Words */}
         {invoice.amountInWords && (
-          <div className="border border-gray-400 border-t-0 py-1.5 px-2 text-[10.5px] font-bold bg-gray-50/40 mb-3">
+          <div className="border border-gray-400 border-t-0 py-1 px-2 text-[10px] font-bold bg-gray-50/40 mb-2">
             Amount in Words: {invoice.amountInWords}
           </div>
         )}
 
         {/* Terms & Conditions */}
-        <div className="mt-3 text-[10px] leading-snug">
-          <div className="font-bold underline text-[10.5px] mb-1">
+        <div className="mt-2 text-[9.5px] leading-tight">
+          <div className="font-bold underline text-[10px] mb-0.5">
             TERMS & CONDITIONS
           </div>
-          <div className="text-gray-800 space-y-1">
+          <div className="text-gray-800 space-y-0.5">
             {termsList.map((point, idx) => (
-              <div key={idx} className="leading-snug">
+              <div key={idx} className="leading-tight">
                 {point}
               </div>
             ))}
@@ -306,13 +306,13 @@ export default function PerformaInvoiceDocument({ invoice, settings = {} }) {
         </div>
 
         {/* Bank & Payment Details */}
-        <div className="mt-2.5 text-[10px] leading-snug">
-          <div className="text-gray-800 mb-1">
+        <div className="mt-2 text-[9.5px] leading-tight">
+          <div className="text-gray-800 mb-0.5">
             {invoice.paymentRoutingNote ||
               "Payment should be made to our agent in the UAE, 'Greatway Ceylon Fruits and Vegetables Trading LLC'."}
           </div>
 
-          <div className="space-y-0.5 mt-1 font-mono text-[10px]">
+          <div className="space-y-0.5 mt-0.5 font-mono text-[9.5px]">
             <div className="flex">
               <span className="w-28 text-gray-700">Account Name</span>
               <span>: {bank.accountName || companyName}</span>
@@ -347,10 +347,10 @@ export default function PerformaInvoiceDocument({ invoice, settings = {} }) {
         </div>
 
         {/* Signatory Area */}
-        <div className="flex justify-end mt-4">
+        <div className="flex justify-end mt-2.5">
           <div className="text-center w-52">
-            <div className="border-b border-black h-10 mb-1"></div>
-            <div className="text-[10.5px] font-medium">Authorized Signatory</div>
+            <div className="border-b border-black h-8 mb-1"></div>
+            <div className="text-[10px] font-medium">Authorized Signatory</div>
           </div>
         </div>
 

@@ -133,10 +133,10 @@ const generateQuotationPdf = async (req, res) => {
         format: 'A4',
         printBackground: true,
         margin: {
-          top: '10mm',
-          right: '12mm',
-          bottom: '10mm',
-          left: '12mm',
+          top: '5mm',
+          right: '8mm',
+          bottom: '5mm',
+          left: '8mm',
         },
       });
 
@@ -228,10 +228,10 @@ const generateInvoicePdf = async (req, res) => {
         format: 'A4',
         printBackground: true,
         margin: {
-          top: '8mm',
-          right: '10mm',
-          bottom: '8mm',
-          left: '10mm',
+          top: '4mm',
+          right: '6mm',
+          bottom: '4mm',
+          left: '6mm',
         },
       });
 

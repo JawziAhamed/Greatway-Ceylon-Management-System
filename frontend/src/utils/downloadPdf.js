@@ -26,6 +26,12 @@ export const exportElementToPdf = async (element, rawFilename) => {
 
   const filename = sanitizeFilename(rawFilename);
 
+  // Directly target the inner document if a wrapper or modal container was passed
+  const targetElement =
+    element.querySelector?.('.invoice-document-root, .quotation-document-root') ||
+    element.firstElementChild ||
+    element;
+
   const opt = {
     margin: [0, 0, 0, 0],
     filename: filename,
@@ -37,6 +43,7 @@ export const exportElementToPdf = async (element, rawFilename) => {
       letterRendering: true,
       scrollX: 0,
       scrollY: 0,
+      windowWidth: 1200, // Standardize layout typography across desktop & laptop screens
       onclone: (clonedDoc) => {
         // Strip box shadows that look weird in PDF
         const docs = clonedDoc.querySelectorAll(
@@ -45,6 +52,13 @@ export const exportElementToPdf = async (element, rawFilename) => {
         docs.forEach((d) => {
           d.style.boxShadow = 'none';
         });
+
+        // Strip outer wrapper padding that could expand canvas height
+        const wrap = clonedDoc.getElementById('printable-document-content');
+        if (wrap) {
+          wrap.style.padding = '0';
+          wrap.style.margin = '0';
+        }
       },
     },
     jsPDF: {
@@ -55,7 +69,36 @@ export const exportElementToPdf = async (element, rawFilename) => {
     pagebreak: { mode: ['avoid-all', 'css', 'legacy'] },
   };
 
-  return html2pdf().set(opt).from(element).save();
+  const worker = html2pdf().set(opt).from(targetElement);
+  await worker.toCanvas();
+  const canvas = worker.prop.canvas;
+  const a4Ratio = 297 / 210; // ~1.41428
+  const currentRatio = canvas ? canvas.height / canvas.width : 0;
+
+  await worker.toPdf();
+  const pdf = worker.prop.pdf;
+  const pageCount = pdf ? pdf.internal.getNumberOfPages() : 1;
+
+  // Smart 1-Page Fitting: If document has spilled slightly over 1 page (<= 1.20x A4 ratio),
+  // scale it cleanly to fit on exactly 1 single A4 page so no trailing blank/partial 2nd page is created.
+  if (canvas && currentRatio > 0 && currentRatio <= a4Ratio * 1.20 && pageCount > 1 && pdf) {
+    const JsPdfClass = pdf.constructor;
+    const singlePdf = new JsPdfClass({ orientation: 'p', unit: 'mm', format: 'a4' });
+    const pdfW = 210;
+    const pdfH = 297;
+    const imgW = pdfW;
+    const imgH = (canvas.height * imgW) / canvas.width;
+    const scale = Math.min(1, pdfH / imgH);
+    const finalW = imgW * scale;
+    const finalH = imgH * scale;
+    const x = (pdfW - finalW) / 2;
+    const y = (pdfH - finalH) / 2;
+    const imgData = canvas.toDataURL('image/jpeg', 0.98);
+    singlePdf.addImage(imgData, 'JPEG', x, y, finalW, finalH);
+    return singlePdf.save(filename);
+  }
+
+  return worker.save();
 };
 
 /**

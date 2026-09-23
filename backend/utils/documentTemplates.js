@@ -123,9 +123,9 @@ const generateQuotationHTML = (quotation, settings = {}, logoBase64) => {
     }
     body {
       margin: 0;
-      padding: 12mm 15mm;
+      padding: 5mm 8mm;
       background: #fff;
-      font-size: 11px;
+      font-size: 10.5px;
       -webkit-print-color-adjust: exact;
       print-color-adjust: exact;
     }
@@ -584,9 +584,9 @@ const generateInvoiceHTML = (invoice, settings = {}, logoBase64) => {
     }
     body {
       margin: 0;
-      padding: 10mm 12mm;
+      padding: 4mm 6mm;
       background: #fff;
-      font-size: 11px;
+      font-size: 10.5px;
       -webkit-print-color-adjust: exact;
       print-color-adjust: exact;
     }
@@ -595,14 +595,14 @@ const generateInvoiceHTML = (invoice, settings = {}, logoBase64) => {
       max-width: 800px;
       margin: 0 auto;
       border: 1.5px solid #111;
-      padding: 12px 14px;
+      padding: 8px 10px;
       position: relative;
     }
     .header-section {
       display: flex;
       justify-content: space-between;
       align-items: flex-start;
-      margin-bottom: 12px;
+      margin-bottom: 8px;
     }
     .logo-container {
       width: 45%;

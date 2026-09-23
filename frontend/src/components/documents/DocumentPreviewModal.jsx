@@ -49,9 +49,13 @@ export default function DocumentPreviewModal({
     if (!currentDoc) return;
     try {
       setDownloading(true);
-      const docElement =
+      const containerEl =
         printContentRef.current ||
         window.document.getElementById('printable-document-content');
+      const docElement =
+        containerEl?.querySelector('.invoice-document-root, .quotation-document-root') ||
+        containerEl?.firstElementChild ||
+        containerEl;
       await downloadDocumentPdf({
         docType: isQuotation ? 'quotation' : 'invoice',
         docId,
@@ -259,7 +263,7 @@ export default function DocumentPreviewModal({
       <div
         ref={printContentRef}
         id="printable-document-content"
-        className="w-full max-w-[840px] pb-10 print:max-w-none print:pb-0 print-document-container"
+        className="w-full max-w-[840px] mb-8 print:mb-0 print:max-w-none print-document-container"
       >
         {isQuotation ? (
           <QuotationDocument quotation={currentDoc} settings={settings} />
