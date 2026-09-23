@@ -65,9 +65,12 @@ export default function PerformaInvoiceDocument({ invoice, settings = {}, onUplo
         ];
 
   return (
-    <div className="invoice-document-root bg-white text-gray-900 p-4 sm:p-5 max-w-[820px] mx-auto text-[10.5px] leading-snug shadow-md print:shadow-none print:p-0 print:max-w-none">
+    <div
+      className="invoice-document-root bg-white text-gray-900 p-4 sm:p-5 max-w-[800px] w-full mx-auto text-[10.5px] leading-snug shadow-md print:shadow-none print:p-0 print:max-w-none flex flex-col justify-between"
+      style={{ minHeight: '1130px' }}
+    >
       {/* Outer Enclosing Frame matching the prototype */}
-      <div className="relative border-[1.5px] border-black p-3">
+      <div className="relative border-[1.5px] border-black p-3.5 flex-1 flex flex-col justify-between">
         {/* Header Section */}
         <div className="flex justify-between items-start mb-2">
           <div className="w-5/12">
@@ -141,6 +144,12 @@ export default function PerformaInvoiceDocument({ invoice, settings = {}, onUplo
                   <span className="font-bold w-[125px] shrink-0 whitespace-nowrap">INCOTERMS:</span>
                   <span className="font-bold text-gray-900 flex-1 min-w-0 leading-tight">
                     {getIncotermCode(invoice.incoterms) || invoice.incoterms || 'CIF'}
+                  </span>
+                </div>
+                <div className="flex items-start">
+                  <span className="font-bold w-[125px] shrink-0 whitespace-nowrap">STATUS:</span>
+                  <span className="font-bold text-green-700 uppercase flex-1 min-w-0 leading-tight">
+                    {invoice.status || 'DRAFT'}
                   </span>
                 </div>
               </div>
@@ -300,50 +309,50 @@ export default function PerformaInvoiceDocument({ invoice, settings = {}, onUplo
         </div>
 
         {/* Bank & Payment Details + Signatory Area */}
-        <div className="mt-2 flex justify-between items-end gap-3 relative z-10">
+        <div className="mt-auto pt-3 flex justify-between items-end gap-3 relative z-10">
           {/* Bank & Payment Details */}
-          <div className="text-[9.5px] leading-tight flex-1 max-w-[62%]">
-            <div className="text-gray-800 mb-0.5">
+          <div className="text-[10px] leading-snug flex-1 max-w-[60%]">
+            <div className="text-gray-800 mb-1 font-sans">
               {invoice.paymentRoutingNote ||
-                "Payment should be made to our agent in the UAE, 'Greatway Ceylon Fruits and Vegetables Trading LLC'."}
+                "Direct SWIFT wire transfer to Sampath Bank PLC, Welimada Branch, Sri Lanka."}
             </div>
 
-            <div className="space-y-0.5 mt-0.5 font-mono text-[9.5px]">
+            <div className="space-y-0.5 font-sans text-[10px]">
               <div className="flex">
                 <span className="w-28 text-gray-700 shrink-0">Account Name</span>
-                <span>: {bank.accountName || companyName}</span>
+                <span className="font-semibold text-gray-900">: {bank.accountName || companyName}</span>
               </div>
               <div className="flex">
                 <span className="w-28 text-gray-700 shrink-0">Bank Name</span>
-                <span>: {bank.bankName || ''}</span>
+                <span className="font-semibold text-gray-900">: {bank.bankName || ''}</span>
               </div>
               <div className="flex">
                 <span className="w-28 text-gray-700 shrink-0">Bank Branch</span>
-                <span>: {bank.bankBranch || ''}</span>
+                <span className="font-semibold text-gray-900">: {bank.bankBranch || ''}</span>
               </div>
               <div className="flex">
                 <span className="w-28 text-gray-700 shrink-0">Account Number</span>
-                <span>: {bank.accountNumber || ''}</span>
+                <span className="font-semibold text-gray-900">: {bank.accountNumber || ''}</span>
               </div>
               <div className="flex">
                 <span className="w-28 text-gray-700 shrink-0">SWIFT</span>
-                <span>: {bank.swift || ''}</span>
+                <span className="font-semibold text-gray-900">: {bank.swift || ''}</span>
               </div>
               {bank.iban && (
                 <div className="flex">
                   <span className="w-28 text-gray-700 shrink-0">IBAN</span>
-                  <span>: {bank.iban}</span>
+                  <span className="font-semibold text-gray-900">: {bank.iban}</span>
                 </div>
               )}
               <div className="flex">
                 <span className="w-28 text-gray-700 shrink-0">Currency</span>
-                <span>: {bank.currency || invoice.currency || 'USD'}</span>
+                <span className="font-semibold text-gray-900">: {bank.currency || invoice.currency || 'USD'}</span>
               </div>
             </div>
           </div>
 
-          {/* Signatory Area at Right Bottom */}
-          <div className="text-center w-56 relative z-10 group shrink-0 pb-0.5">
+          {/* Signatory Area at Right Bottom Matching Canva Spec */}
+          <div className="text-center w-64 relative z-10 group shrink-0 pb-0.5">
             {/* Direct Device Upload Overlay (Hidden in PDF & Print) */}
             {onUploadSignature && (
               <label
@@ -362,31 +371,35 @@ export default function PerformaInvoiceDocument({ invoice, settings = {}, onUplo
               </label>
             )}
 
-            {safeSettings.showSignature !== false && (
-              <div className="flex justify-center -mb-2">
+            {/* Stamp & Signature container with Watermark Seal behind */}
+            <div className="relative flex items-center justify-center min-h-[64px] mb-1">
+              {/* Green Circular Watermark Logo Stamped Behind the Signature */}
+              <div className="absolute right-0 top-1/2 -translate-y-1/2 pointer-events-none opacity-35 select-none z-0">
                 <img
-                  src={resolveMediaUrl(safeSettings.signatureUrl) || signatureImg}
-                  alt="Authorized Signature & Stamp"
-                  className="h-14 max-w-[220px] object-contain"
-                  onError={(e) => {
-                    e.target.onerror = null;
-                    e.target.src = signatureImg;
-                  }}
+                  src={watermarkLogoImg}
+                  alt="Watermark Seal"
+                  className="w-20 h-20 object-contain"
                 />
               </div>
-            )}
-            <div className="border-b border-black w-full mb-1"></div>
-            <div className="text-[10px] font-medium">Authorized Signatory</div>
-          </div>
-        </div>
 
-        {/* Transparent Watermark Logo at Right Bottom */}
-        <div className="absolute right-4 bottom-3 pointer-events-none opacity-20 select-none">
-          <img
-            src={watermarkLogoImg}
-            alt="Greatway Mark"
-            className="w-16 h-16 object-contain"
-          />
+              {safeSettings.showSignature !== false && (
+                <div className="relative z-10">
+                  <img
+                    src={resolveMediaUrl(safeSettings.signatureUrl) || signatureImg}
+                    alt="Authorized Signature & Stamp"
+                    className="h-14 max-w-[230px] object-contain"
+                    onError={(e) => {
+                      e.target.onerror = null;
+                      e.target.src = signatureImg;
+                    }}
+                  />
+                </div>
+              )}
+            </div>
+
+            <div className="border-b border-black w-full mb-1"></div>
+            <div className="text-[10.5px] font-semibold text-gray-900">Authorized Signatory</div>
+          </div>
         </div>
       </div>
     </div>

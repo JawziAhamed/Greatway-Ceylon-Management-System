@@ -793,6 +793,10 @@ const generateInvoiceHTML = (invoice, settings = {}, logoBase64, signatureBase64
                 <td style="border: none; padding: 2px 6px 2px 0; font-weight: bold; width: 130px; white-space: nowrap;">INCOTERMS:</td>
                 <td style="border: none; padding: 2px 0; font-weight: bold;">${getIncotermCode(invoice.incoterms) || invoice.incoterms || 'CIF'}</td>
               </tr>
+              <tr>
+                <td style="border: none; padding: 2px 6px 2px 0; font-weight: bold; width: 130px; white-space: nowrap;">STATUS:</td>
+                <td style="border: none; padding: 2px 0; font-weight: bold; color: #16a34a; text-transform: uppercase;">${invoice.status || 'DRAFT'}</td>
+              </tr>
             </table>
           </div>
         </td>
@@ -849,59 +853,57 @@ const generateInvoiceHTML = (invoice, settings = {}, logoBase64, signatureBase64
     <!-- Bank Details & Signatory Section -->
     <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-top: 8px;">
       <!-- Bank Details -->
-      <div class="bank-box" style="margin-top: 0; max-width: 62%;">
-        <div>${invoice.paymentRoutingNote || 'Payment should be made to our bank account as follows:'}</div>
+      <div class="bank-box" style="margin-top: 0; max-width: 60%;">
+        <div style="margin-bottom: 3px;">${invoice.paymentRoutingNote || 'Direct SWIFT wire transfer to Sampath Bank PLC, Welimada Branch, Sri Lanka.'}</div>
         <div class="bank-grid">
           <table>
             <tr>
               <td class="bank-label">Account Name</td>
-              <td>: ${bank.accountName || companyName}</td>
+              <td style="font-weight: bold;">: ${bank.accountName || companyName}</td>
             </tr>
             <tr>
               <td class="bank-label">Bank Name</td>
-              <td>: ${bank.bankName || ''}</td>
+              <td style="font-weight: bold;">: ${bank.bankName || ''}</td>
             </tr>
             <tr>
               <td class="bank-label">Bank Branch</td>
-              <td>: ${bank.bankBranch || ''}</td>
+              <td style="font-weight: bold;">: ${bank.bankBranch || ''}</td>
             </tr>
             <tr>
               <td class="bank-label">Account Number</td>
-              <td>: ${bank.accountNumber || ''}</td>
+              <td style="font-weight: bold;">: ${bank.accountNumber || ''}</td>
             </tr>
             <tr>
               <td class="bank-label">SWIFT</td>
-              <td>: ${bank.swift || ''}</td>
+              <td style="font-weight: bold;">: ${bank.swift || ''}</td>
             </tr>
-            ${bank.iban ? `<tr><td class="bank-label">IBAN</td><td>: ${bank.iban}</td></tr>` : ''}
+            ${bank.iban ? `<tr><td class="bank-label">IBAN</td><td style="font-weight: bold;">: ${bank.iban}</td></tr>` : ''}
             <tr>
               <td class="bank-label">Currency</td>
-              <td>: ${bank.currency || invoice.currency || 'USD'}</td>
+              <td style="font-weight: bold;">: ${bank.currency || invoice.currency || 'USD'}</td>
             </tr>
           </table>
         </div>
       </div>
 
       <!-- Signatory -->
-      <div class="sign-section" style="margin-top: 0; align-self: flex-end;">
-        <div class="sign-box">
+      <div class="sign-section" style="margin-top: 0; align-self: flex-end; position: relative;">
+        <div class="sign-box" style="position: relative; width: 220px;">
+          ${watermarkBase64 ? `
+          <div style="position: absolute; right: 0; top: 0; pointer-events: none; opacity: 0.35; z-index: 1;">
+            <img src="data:image/png;base64,${watermarkBase64}" style="width: 70px; height: 70px; object-fit: contain;" alt="Watermark Seal" />
+          </div>
+          ` : ''}
           ${signatureBase64 && settings.showSignature !== false ? `
-            <div style="text-align: center; margin-bottom: -6px;">
-              <img src="data:image/png;base64,${signatureBase64}" style="height: 52px; max-width: 200px; object-fit: contain;" alt="Authorized Signature" />
+            <div style="text-align: center; margin-bottom: -6px; position: relative; z-index: 2;">
+              <img src="data:image/png;base64,${signatureBase64}" style="height: 52px; max-width: 210px; object-fit: contain;" alt="Authorized Signature" />
             </div>
           ` : ''}
           <div class="sign-line" style="${signatureBase64 && settings.showSignature !== false ? 'height: 0px;' : 'height: 35px;'}"></div>
-          <div style="font-weight: 500;">Authorized Signatory</div>
+          <div style="font-weight: 600; font-size: 10.5px;">Authorized Signatory</div>
         </div>
       </div>
     </div>
-
-    <!-- Transparent Watermark Logo at Right Bottom -->
-    ${watermarkBase64 ? `
-    <div style="position: absolute; right: 15px; bottom: 15px; pointer-events: none; opacity: 0.20;">
-      <img src="data:image/png;base64,${watermarkBase64}" style="width: 65px; height: 65px; object-fit: contain;" alt="Watermark" />
-    </div>
-    ` : ''}
   </div>
 </body>
 </html>

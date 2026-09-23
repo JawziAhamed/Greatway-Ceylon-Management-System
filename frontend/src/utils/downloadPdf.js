@@ -89,7 +89,7 @@ export const exportElementToPdf = async (element, rawFilename) => {
   }
 
   const x = (a4Width - finalWidth) / 2;
-  const y = marginTop; // Top-aligned with clean standard margin
+  const y = (a4Height - finalHeight) / 2;
 
   const imgData = canvas.toDataURL('image/jpeg', 0.98);
   pdf.addImage(imgData, 'JPEG', x, y, finalWidth, finalHeight, undefined, 'FAST');
