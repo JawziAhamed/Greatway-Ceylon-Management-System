@@ -41,7 +41,7 @@ const DEFAULT_SPECIFIC_TERMS = [
 ];
 
 // Generate Quotation HTML matching quotation_page_1.png
-const generateQuotationHTML = (quotation, settings = {}, logoBase64) => {
+const generateQuotationHTML = (quotation, settings = {}, logoBase64, signatureBase64) => {
   const buyer =
     quotation.buyerSnapshot && (quotation.buyerSnapshot.companyName || quotation.buyerSnapshot.address)
       ? quotation.buyerSnapshot
@@ -343,7 +343,6 @@ const generateQuotationHTML = (quotation, settings = {}, logoBase64) => {
             <td class="meta-label">INCOTERMS</td>
             <td style="font-weight: bold;">: ${getIncotermCode(quotation.incoterms) || quotation.incoterms || 'CIF'}</td>
           </tr>
-          ${quotation.status ? `<tr><td class="meta-label">STATUS</td><td style="font-weight: bold; color: #14663e;">: ${quotation.status.toUpperCase()}</td></tr>` : ''}
         </table>
       </div>
     </div>
@@ -408,7 +407,11 @@ const generateQuotationHTML = (quotation, settings = {}, logoBase64) => {
     <!-- Signatory -->
     <div class="sign-section">
       <div class="company-signatory">
-        <div style="margin-bottom: 25px;">...................................</div>
+        ${signatureBase64 && settings.showSignature !== false ? `
+          <div style="margin-bottom: -5px;">
+            <img src="data:image/png;base64,${signatureBase64}" style="height: 48px; max-width: 180px; object-fit: contain;" alt="Signature" />
+          </div>
+        ` : `<div style="margin-bottom: 25px;">...................................</div>`}
         <strong>${quotation.signatory?.name || 'Authorized Signatory'}</strong><br>
         ${quotation.signatory?.designation || 'Chief Executive Officer'}<br>
         <strong>${quotation.signatory?.company || companyName}</strong>
@@ -463,7 +466,7 @@ const generateQuotationHTML = (quotation, settings = {}, logoBase64) => {
 };
 
 // Generate Performa Invoice HTML matching invoice_page_1.png
-const generateInvoiceHTML = (invoice, settings = {}, logoBase64) => {
+const generateInvoiceHTML = (invoice, settings = {}, logoBase64, signatureBase64) => {
   const buyer =
     invoice.buyerSnapshot && (invoice.buyerSnapshot.companyName || invoice.buyerSnapshot.address)
       ? invoice.buyerSnapshot
@@ -790,7 +793,6 @@ const generateInvoiceHTML = (invoice, settings = {}, logoBase64) => {
                 <td style="border: none; padding: 2px 6px 2px 0; font-weight: bold; width: 130px; white-space: nowrap;">INCOTERMS:</td>
                 <td style="border: none; padding: 2px 0; font-weight: bold;">${getIncotermCode(invoice.incoterms) || invoice.incoterms || 'CIF'}</td>
               </tr>
-              ${invoice.status ? `<tr><td style="border: none; padding: 2px 6px 2px 0; font-weight: bold; width: 130px; white-space: nowrap;">STATUS:</td><td style="border: none; padding: 2px 0; font-weight: bold; color: #237837;">${invoice.status.toUpperCase()}</td></tr>` : ''}
             </table>
           </div>
         </td>
@@ -881,7 +883,12 @@ const generateInvoiceHTML = (invoice, settings = {}, logoBase64) => {
     <!-- Signatory -->
     <div class="sign-section">
       <div class="sign-box">
-        <div class="sign-line"></div>
+        ${signatureBase64 && settings.showSignature !== false ? `
+          <div style="text-align: center; margin-bottom: -6px;">
+            <img src="data:image/png;base64,${signatureBase64}" style="height: 52px; max-width: 200px; object-fit: contain;" alt="Authorized Signature" />
+          </div>
+        ` : ''}
+        <div class="sign-line" style="${signatureBase64 && settings.showSignature !== false ? 'height: 0px;' : 'height: 35px;'}"></div>
         <div style="font-weight: 500;">Authorized Signatory</div>
       </div>
     </div>

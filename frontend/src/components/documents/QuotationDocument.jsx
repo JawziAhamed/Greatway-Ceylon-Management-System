@@ -1,4 +1,5 @@
 import React from 'react';
+import { Upload } from 'lucide-react';
 import logoImg from '../../assets/logo.png';
 import watermarkLogoImg from '../../assets/watermark_logo.png';
 import signatureImg from '../../assets/signature.png';
@@ -22,7 +23,7 @@ export const formatDate = (dateStr) => {
   return `${day}/${month}/${year}`;
 };
 
-export default function QuotationDocument({ quotation, settings = {} }) {
+export default function QuotationDocument({ quotation, settings = {}, onUploadSignature }) {
   if (!quotation) return null;
 
   const safeSettings = settings || {};
@@ -138,14 +139,6 @@ export default function QuotationDocument({ quotation, settings = {} }) {
                 <td className="font-bold text-gray-700 pr-3 py-0.5">INCOTERMS</td>
                 <td className="py-0.5">: <span className="font-bold">{getIncotermCode(quotation.incoterms) || quotation.incoterms || 'CIF'}</span></td>
               </tr>
-              {quotation.status && (
-                <tr>
-                  <td className="font-bold text-gray-700 pr-3 py-0.5">STATUS</td>
-                  <td className="py-0.5">
-                    : <span className="font-bold uppercase text-[10px] tracking-wider text-[#14663e]">{quotation.status}</span>
-                  </td>
-                </tr>
-              )}
             </tbody>
           </table>
         </div>
@@ -237,7 +230,25 @@ export default function QuotationDocument({ quotation, settings = {} }) {
 
       {/* Signatory & Seal */}
       <div className="flex justify-between items-end my-2">
-        <div className="text-[9.5px]">
+        <div className="text-[9.5px] relative group">
+          {/* Direct Device Upload Overlay (Hidden in PDF & Print) */}
+          {onUploadSignature && (
+            <label
+              data-html2canvas-ignore="true"
+              className="print:hidden absolute -top-6 left-0 inline-flex items-center gap-1 px-2 py-0.5 bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-300 rounded text-[9.5px] font-semibold cursor-pointer shadow-xs transition select-none z-30"
+              title="Add or change signature & company stamp from your device"
+            >
+              <Upload className="w-2.5 h-2.5 text-amber-700" />
+              <span>{safeSettings.signatureUrl ? 'Change Sign & Stamp' : 'Add Sign & Stamp (Device)'}</span>
+              <input
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={onUploadSignature}
+              />
+            </label>
+          )}
+
           {safeSettings.showSignature !== false && (
             <div className="mb-0.5">
               <img

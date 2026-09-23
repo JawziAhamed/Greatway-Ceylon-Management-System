@@ -1,4 +1,5 @@
 import React from 'react';
+import { Upload } from 'lucide-react';
 import logoImg from '../../assets/logo.png';
 import watermarkLogoImg from '../../assets/watermark_logo.png';
 import signatureImg from '../../assets/signature.png';
@@ -31,7 +32,7 @@ const getCurrencySymbol = (curr) => {
   return '$';
 };
 
-export default function PerformaInvoiceDocument({ invoice, settings = {} }) {
+export default function PerformaInvoiceDocument({ invoice, settings = {}, onUploadSignature }) {
   if (!invoice) return null;
 
   const safeSettings = settings || {};
@@ -142,14 +143,6 @@ export default function PerformaInvoiceDocument({ invoice, settings = {} }) {
                     {getIncotermCode(invoice.incoterms) || invoice.incoterms || 'CIF'}
                   </span>
                 </div>
-                {invoice.status && (
-                  <div className="flex items-center">
-                    <span className="font-bold w-[125px] shrink-0 whitespace-nowrap">STATUS:</span>
-                    <span className="font-bold uppercase text-[10px] tracking-wider text-[#237837] flex-1 min-w-0">
-                      {invoice.status}
-                    </span>
-                  </div>
-                )}
               </div>
             </div>
 
@@ -349,7 +342,25 @@ export default function PerformaInvoiceDocument({ invoice, settings = {} }) {
 
         {/* Signatory Area */}
         <div className="flex justify-end mt-1.5">
-          <div className="text-center w-56 relative z-10">
+          <div className="text-center w-56 relative z-10 group">
+            {/* Direct Device Upload Overlay (Hidden in PDF & Print) */}
+            {onUploadSignature && (
+              <label
+                data-html2canvas-ignore="true"
+                className="print:hidden absolute -top-6 right-0 inline-flex items-center gap-1 px-2 py-0.5 bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-300 rounded text-[9.5px] font-semibold cursor-pointer shadow-xs transition select-none z-30"
+                title="Add or change signature & company stamp from your device"
+              >
+                <Upload className="w-2.5 h-2.5 text-amber-700" />
+                <span>{safeSettings.signatureUrl ? 'Change Sign & Stamp' : 'Add Sign & Stamp (Device)'}</span>
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={onUploadSignature}
+                />
+              </label>
+            )}
+
             {safeSettings.showSignature !== false && (
               <div className="flex justify-center -mb-2">
                 <img

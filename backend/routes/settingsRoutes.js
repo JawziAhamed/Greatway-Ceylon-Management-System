@@ -14,7 +14,7 @@ router.use(protect);
 
 router.route('/').get(getSettings).put(adminOnly, updateSettings);
 router.post('/logo', adminOnly, upload.single('logo'), uploadLogo);
-router.post('/signature', adminOnly, upload.single('signature'), uploadSignature);
-router.delete('/signature', adminOnly, removeSignature);
+router.post('/signature', upload.single('signature'), uploadSignature);
+router.delete('/signature', removeSignature);
 
 module.exports = router;

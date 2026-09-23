@@ -27,6 +27,29 @@ const getLogoBase64 = (settings) => {
   return null;
 };
 
+const getSignatureBase64 = (settings) => {
+  try {
+    let sigPath = path.join(__dirname, '../uploads/signature.png');
+    if (settings && settings.signatureUrl) {
+      const customPath = path.join(__dirname, '..', settings.signatureUrl);
+      if (fs.existsSync(customPath)) {
+        sigPath = customPath;
+      }
+    } else if (settings && settings.defaultSignatory?.signatureImageUrl) {
+      const customPath = path.join(__dirname, '..', settings.defaultSignatory.signatureImageUrl);
+      if (fs.existsSync(customPath)) {
+        sigPath = customPath;
+      }
+    }
+    if (fs.existsSync(sigPath)) {
+      return fs.readFileSync(sigPath).toString('base64');
+    }
+  } catch (err) {
+    console.error('Error reading signature file for PDF:', err.message);
+  }
+  return null;
+};
+
 const getLaunchOptions = () => {
   const options = {
     headless: 'new',
@@ -122,7 +145,8 @@ const generateQuotationPdf = async (req, res) => {
     if (!settings) settings = await CompanySettings.create({});
 
     const logoBase64 = getLogoBase64(settings);
-    const html = generateQuotationHTML(quotation, settings, logoBase64);
+    const signatureBase64 = getSignatureBase64(settings);
+    const html = generateQuotationHTML(quotation, settings, logoBase64, signatureBase64);
 
     try {
       browser = await puppeteer.launch(getLaunchOptions());
@@ -188,7 +212,8 @@ const generateQuotationHtml = async (req, res) => {
     if (!settings) settings = await CompanySettings.create({});
 
     const logoBase64 = getLogoBase64(settings);
-    let html = generateQuotationHTML(quotation, settings, logoBase64);
+    const signatureBase64 = getSignatureBase64(settings);
+    let html = generateQuotationHTML(quotation, settings, logoBase64, signatureBase64);
     const autoPrint = req.query.print !== '0';
     if (autoPrint) {
       html = html.replace(
@@ -218,7 +243,8 @@ const generateInvoicePdf = async (req, res) => {
     if (!settings) settings = await CompanySettings.create({});
 
     const logoBase64 = getLogoBase64(settings);
-    const html = generateInvoiceHTML(invoice, settings, logoBase64);
+    const signatureBase64 = getSignatureBase64(settings);
+    const html = generateInvoiceHTML(invoice, settings, logoBase64, signatureBase64);
 
     try {
       browser = await puppeteer.launch(getLaunchOptions());
@@ -284,7 +310,8 @@ const generateInvoiceHtml = async (req, res) => {
     if (!settings) settings = await CompanySettings.create({});
 
     const logoBase64 = getLogoBase64(settings);
-    let html = generateInvoiceHTML(invoice, settings, logoBase64);
+    const signatureBase64 = getSignatureBase64(settings);
+    let html = generateInvoiceHTML(invoice, settings, logoBase64, signatureBase64);
     const autoPrint = req.query.print !== '0';
     if (autoPrint) {
       html = html.replace(

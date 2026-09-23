@@ -9,6 +9,7 @@ import {
   ArrowRightCircle,
   FileText,
   Loader2,
+  Upload,
 } from 'lucide-react';
 import QuotationDocument from './QuotationDocument';
 import PerformaInvoiceDocument from './PerformaInvoiceDocument';
@@ -27,8 +28,10 @@ export default function DocumentPreviewModal({
 }) {
   const navigate = useNavigate();
   const [currentDoc, setCurrentDoc] = useState(docProp);
+  const [currentSettings, setCurrentSettings] = useState(settings || {});
   const [downloading, setDownloading] = useState(false);
   const [converting, setConverting] = useState(false);
+  const [uploadingSig, setUploadingSig] = useState(false);
   const printContentRef = useRef(null);
 
   const autoDownloadedRef = useRef(false);
@@ -36,6 +39,51 @@ export default function DocumentPreviewModal({
   useEffect(() => {
     setCurrentDoc(docProp);
   }, [docProp]);
+
+  useEffect(() => {
+    if (settings && Object.keys(settings).length > 0) {
+      setCurrentSettings(settings);
+    } else {
+      axiosClient
+        .get('/settings')
+        .then((res) => {
+          if (res.data?.success && res.data.data) {
+            setCurrentSettings(res.data.data);
+          }
+        })
+        .catch(() => {});
+    }
+  }, [settings, isOpen]);
+
+  const handleSignatureUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      setUploadingSig(true);
+      const formData = new FormData();
+      formData.append('signature', file);
+      const res = await axiosClient.post('/settings/signature', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+      if (res.data?.success) {
+        const newSigUrl =
+          res.data.data?.signatureUrl ||
+          res.data.data?.defaultSignatory?.signatureImageUrl ||
+          '/uploads/signature.png';
+        setCurrentSettings((prev) => ({
+          ...prev,
+          signatureUrl: newSigUrl,
+          showSignature: true,
+        }));
+        if (onRefresh) onRefresh();
+      }
+    } catch (err) {
+      alert('Failed to upload signature & stamp: ' + (err.response?.data?.message || err.message));
+    } finally {
+      setUploadingSig(false);
+      e.target.value = '';
+    }
+  };
 
   const isQuotation = docType === 'Quotation';
   const docNumber = currentDoc
@@ -61,7 +109,7 @@ export default function DocumentPreviewModal({
         docId,
         docNumber,
         documentData: currentDoc,
-        settings,
+        settings: currentSettings,
         element: docElement,
       });
     } catch (err) {
@@ -222,6 +270,26 @@ export default function DocumentPreviewModal({
             Duplicate
           </button>
 
+          {/* Upload Sign & Stamp from Device */}
+          <label
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-300 rounded-lg text-xs font-semibold cursor-pointer shadow-xs transition select-none disabled:opacity-50"
+            title="Upload signature and company stamp from your device"
+          >
+            {uploadingSig ? (
+              <Loader2 className="w-3.5 h-3.5 animate-spin text-amber-700" />
+            ) : (
+              <Upload className="w-3.5 h-3.5 text-amber-700" />
+            )}
+            <span>{currentSettings.signatureUrl ? 'Change Sign & Stamp' : 'Add Sign & Stamp'}</span>
+            <input
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={handleSignatureUpload}
+              disabled={uploadingSig}
+            />
+          </label>
+
           {autoDownload && (
             <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-lg text-xs font-medium animate-pulse">
               <Loader2 className="w-3.5 h-3.5 animate-spin text-emerald-600" />
@@ -266,9 +334,17 @@ export default function DocumentPreviewModal({
         className="w-full max-w-[840px] mb-8 print:mb-0 print:max-w-none print-document-container"
       >
         {isQuotation ? (
-          <QuotationDocument quotation={currentDoc} settings={settings} />
+          <QuotationDocument
+            quotation={currentDoc}
+            settings={currentSettings}
+            onUploadSignature={handleSignatureUpload}
+          />
         ) : (
-          <PerformaInvoiceDocument invoice={currentDoc} settings={settings} />
+          <PerformaInvoiceDocument
+            invoice={currentDoc}
+            settings={currentSettings}
+            onUploadSignature={handleSignatureUpload}
+          />
         )}
       </div>
     </div>

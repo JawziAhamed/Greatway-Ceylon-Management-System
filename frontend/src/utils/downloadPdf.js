@@ -58,6 +58,20 @@ export const exportElementToPdf = async (element, rawFilename) => {
         d.style.boxShadow = 'none';
       });
 
+      // Strip outer card container padding, border and radius so the invoice fills the page cleanly
+      const rootDocs = clonedDoc.querySelectorAll(
+        '.invoice-document-root, .quotation-document-root'
+      );
+      rootDocs.forEach((d) => {
+        d.style.padding = '0px';
+        d.style.margin = '0px';
+        d.style.border = 'none';
+        d.style.borderRadius = '0px';
+        d.style.boxShadow = 'none';
+        d.style.maxWidth = '800px';
+        d.style.width = '800px';
+      });
+
       // Strip any outer container padding that could expand canvas dimensions
       const wrap = clonedDoc.getElementById('printable-document-content');
       if (wrap) {
@@ -71,7 +85,7 @@ export const exportElementToPdf = async (element, rawFilename) => {
     throw new Error('Failed to capture document canvas');
   }
 
-  // 2. Build strictly 1-page jsPDF document
+  // 2. Build strictly 1-page jsPDF document matching the preview sample layout
   const pdf = new jsPDF({
     orientation: 'portrait',
     unit: 'mm',
@@ -81,28 +95,25 @@ export const exportElementToPdf = async (element, rawFilename) => {
 
   const a4Width = 210;
   const a4Height = 297;
-  const margin = 2; // Clean 2mm border margin
-  const printableWidth = a4Width - margin * 2;
-  const printableHeight = a4Height - margin * 2;
+  const marginSide = 6;
+  const marginTop = 6;
+  const marginBottom = 6;
+  const printableWidth = a4Width - marginSide * 2; // 198mm
+  const printableHeight = a4Height - marginTop - marginBottom; // 285mm
 
   const imgRatio = canvas.width / canvas.height;
-  const printableRatio = printableWidth / printableHeight;
 
-  let finalWidth, finalHeight, x, y;
+  let finalWidth = printableWidth;
+  let finalHeight = printableWidth / imgRatio;
 
-  if (imgRatio < printableRatio) {
-    // Document is taller than A4 aspect ratio: fit to printable height
+  // If the rendered height exceeds the A4 printable height, scale down proportionally
+  if (finalHeight > printableHeight) {
     finalHeight = printableHeight;
     finalWidth = printableHeight * imgRatio;
-    x = margin + (printableWidth - finalWidth) / 2;
-    y = margin;
-  } else {
-    // Document is wider than or equal to A4 aspect ratio: fit to printable width
-    finalWidth = printableWidth;
-    finalHeight = printableWidth / imgRatio;
-    x = margin;
-    y = margin + (printableHeight - finalHeight) / 2;
   }
+
+  const x = (a4Width - finalWidth) / 2;
+  const y = marginTop; // Top-aligned with clean standard margin
 
   const imgData = canvas.toDataURL('image/jpeg', 0.98);
   pdf.addImage(imgData, 'JPEG', x, y, finalWidth, finalHeight, undefined, 'FAST');
