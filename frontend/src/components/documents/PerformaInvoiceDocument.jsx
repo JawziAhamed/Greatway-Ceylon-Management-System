@@ -367,6 +367,10 @@ export default function PerformaInvoiceDocument({ invoice, settings = {}, onUplo
                   src={resolveMediaUrl(safeSettings.signatureUrl) || signatureImg}
                   alt="Authorized Signature & Stamp"
                   className="h-14 max-w-[220px] object-contain"
+                  onError={(e) => {
+                    e.target.onerror = null;
+                    e.target.src = signatureImg;
+                  }}
                 />
               </div>
             )}

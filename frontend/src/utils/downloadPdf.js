@@ -39,45 +39,21 @@ export const exportElementToPdf = async (element, rawFilename) => {
     }
   }
 
-  // 1. High-Resolution Canvas Rendering
+  // 1. High-Resolution Canvas Rendering capturing the EXACT preview appearance
   const canvas = await html2canvas(targetElement, {
     scale: 2, // High resolution (300 DPI equivalent)
     useCORS: true,
     logging: false,
     letterRendering: true,
-    scrollX: 0,
-    scrollY: 0,
-    windowWidth: 840,
     backgroundColor: '#ffffff',
     onclone: (clonedDoc) => {
-      // Remove any box shadows for a crisp print appearance
+      // Remove any heavy drop shadows for clean print rendering
       const docs = clonedDoc.querySelectorAll(
         '.shadow-md, .shadow-lg, .shadow-sm, .shadow-xl, .shadow-2xl'
       );
       docs.forEach((d) => {
         d.style.boxShadow = 'none';
       });
-
-      // Strip outer card container padding, border and radius so the invoice fills the page cleanly
-      const rootDocs = clonedDoc.querySelectorAll(
-        '.invoice-document-root, .quotation-document-root'
-      );
-      rootDocs.forEach((d) => {
-        d.style.padding = '0px';
-        d.style.margin = '0px';
-        d.style.border = 'none';
-        d.style.borderRadius = '0px';
-        d.style.boxShadow = 'none';
-        d.style.maxWidth = '800px';
-        d.style.width = '800px';
-      });
-
-      // Strip any outer container padding that could expand canvas dimensions
-      const wrap = clonedDoc.getElementById('printable-document-content');
-      if (wrap) {
-        wrap.style.padding = '0';
-        wrap.style.margin = '0';
-      }
     },
   });
 

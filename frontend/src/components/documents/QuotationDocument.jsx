@@ -255,6 +255,10 @@ export default function QuotationDocument({ quotation, settings = {}, onUploadSi
                 src={resolveMediaUrl(safeSettings.signatureUrl) || signatureImg}
                 alt="Authorized Signature & Stamp"
                 className="h-12 max-w-[200px] object-contain"
+                onError={(e) => {
+                  e.target.onerror = null;
+                  e.target.src = signatureImg;
+                }}
               />
             </div>
           )}
