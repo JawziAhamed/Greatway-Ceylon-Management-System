@@ -71,25 +71,33 @@ export const exportElementToPdf = async (element, rawFilename) => {
 
   const a4Width = 210;
   const a4Height = 297;
-  const marginSide = 6;
-  const marginTop = 6;
-  const marginBottom = 6;
-  const printableWidth = a4Width - marginSide * 2; // 198mm
-  const printableHeight = a4Height - marginTop - marginBottom; // 285mm
-
+  const a4Ratio = a4Width / a4Height; // 0.70707
   const imgRatio = canvas.width / canvas.height;
 
-  let finalWidth = printableWidth;
-  let finalHeight = printableWidth / imgRatio;
+  // Since the preview component represents the full A4 page (with its own internal margins),
+  // map edge-to-edge (x = 0, y = 0) without adding artificial margins or downscaling.
+  let finalWidth = a4Width;
+  let finalHeight = a4Width / imgRatio;
+  let x = 0;
+  let y = 0;
 
-  // If the rendered height exceeds the A4 printable height, scale down proportionally
-  if (finalHeight > printableHeight) {
-    finalHeight = printableHeight;
-    finalWidth = printableHeight * imgRatio;
+  // If the rendered content is taller than A4, scale proportionally to fit 1 page, always top-aligned
+  if (finalHeight > a4Height) {
+    finalHeight = a4Height;
+    finalWidth = a4Height * imgRatio;
+    x = (a4Width - finalWidth) / 2;
+    y = 0;
+  } else if (Math.abs(imgRatio - a4Ratio) < 0.04) {
+    // Standard A4 aspect ratio (both Performa Invoice and Quotation)
+    finalWidth = a4Width;
+    finalHeight = a4Height;
+    x = 0;
+    y = 0;
+  } else {
+    // If shorter than A4, anchor to top (y = 0) so header stays at the top of the page
+    x = 0;
+    y = 0;
   }
-
-  const x = (a4Width - finalWidth) / 2;
-  const y = (a4Height - finalHeight) / 2;
 
   const imgData = canvas.toDataURL('image/jpeg', 0.98);
   pdf.addImage(imgData, 'JPEG', x, y, finalWidth, finalHeight, undefined, 'FAST');
@@ -120,6 +128,7 @@ export const downloadDocumentClientSide = async ({
   container.style.top = '0';
   container.style.left = '0';
   container.style.width = '794px'; // 210mm standard A4 at 96 DPI
+  container.style.minHeight = '1123px'; // 297mm standard A4 at 96 DPI
   container.style.backgroundColor = '#ffffff';
   container.style.color = '#111827';
   container.style.zIndex = '-9999';
@@ -142,7 +151,7 @@ export const downloadDocumentClientSide = async ({
       root.render(
         React.createElement(
           'div',
-          { style: { width: '794px', background: '#ffffff', color: '#111827', margin: 0, padding: 0 } },
+          { style: { width: '794px', minHeight: '1123px', background: '#ffffff', color: '#111827', margin: 0, padding: 0 } },
           element
         )
       );

@@ -66,8 +66,8 @@ export default function PerformaInvoiceDocument({ invoice, settings = {}, onUplo
 
   return (
     <div
-      className="invoice-document-root bg-white text-gray-900 p-4 sm:p-5 max-w-[800px] w-full mx-auto text-[10.5px] leading-snug shadow-md print:shadow-none print:p-0 print:max-w-none flex flex-col justify-between"
-      style={{ minHeight: '1130px' }}
+      className="invoice-document-root bg-white text-gray-900 p-5 max-w-[794px] w-full mx-auto text-[10.5px] leading-snug shadow-md print:shadow-none print:p-0 print:max-w-none flex flex-col justify-between box-border"
+      style={{ minHeight: '1123px' }}
     >
       {/* Outer Enclosing Frame matching the prototype */}
       <div className="relative border-[1.5px] border-black p-3.5 flex-1 flex flex-col justify-between">

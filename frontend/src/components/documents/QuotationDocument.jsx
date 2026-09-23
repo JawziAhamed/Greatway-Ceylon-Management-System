@@ -42,7 +42,11 @@ export default function QuotationDocument({ quotation, settings = {}, onUploadSi
   ).filter((term) => term && String(term).trim());
 
   return (
-    <div className="quotation-document-root relative bg-white text-gray-900 p-4 sm:p-5 max-w-[820px] mx-auto text-[10.5px] leading-snug shadow-md print:shadow-none print:p-0 print:max-w-none">
+    <div
+      className="quotation-document-root relative bg-white text-gray-900 p-5 max-w-[794px] w-full mx-auto text-[10.5px] leading-snug shadow-md print:shadow-none print:p-0 print:max-w-none flex flex-col justify-between box-border"
+      style={{ minHeight: '1123px' }}
+    >
+      <div className="flex-1 flex flex-col justify-start">
       {/* Header Row */}
       <div className="flex justify-between items-start mb-2">
         <div className="w-7/12">
@@ -227,7 +231,10 @@ export default function QuotationDocument({ quotation, settings = {}, onUploadSi
           ))}
         </ol>
       </div>
+    </div>
 
+    {/* Bottom Section: Signatory & Customer Acknowledgement */}
+    <div className="mt-auto">
       {/* Signatory & Seal */}
       <div className="flex justify-between items-end my-2">
         <div className="text-[9.5px] relative group">
@@ -309,8 +316,9 @@ export default function QuotationDocument({ quotation, settings = {}, onUploadSi
           </tbody>
         </table>
       </div>
+    </div>
 
-      {/* Transparent Watermark Logo at Right Bottom */}
+    {/* Transparent Watermark Logo at Right Bottom */}
       <div className="absolute right-4 bottom-4 pointer-events-none opacity-20 select-none">
         <img
           src={watermarkLogoImg}
