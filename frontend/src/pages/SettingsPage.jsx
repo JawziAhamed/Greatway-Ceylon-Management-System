@@ -14,10 +14,12 @@ import {
   Upload,
   CheckCircle,
   Lock,
+  PenTool,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import axiosClient, { resolveMediaUrl } from '../api/axiosClient';
 import logoImg from '../assets/logo.png';
+import signatureImg from '../assets/signature.png';
 
 export default function SettingsPage() {
   const { settings, setSettings } = useOutletContext();
@@ -30,8 +32,9 @@ export default function SettingsPage() {
   // Form State
   const [formData, setFormData] = useState(null);
 
-  // Logo file upload state
+  // Logo & Signature file upload state
   const [uploadingLogo, setUploadingLogo] = useState(false);
+  const [uploadingSignature, setUploadingSignature] = useState(false);
 
   // User management tab state
   const [users, setUsers] = useState([]);
@@ -105,6 +108,48 @@ export default function SettingsPage() {
       alert('Failed to upload logo: ' + err.message);
     } finally {
       setUploadingLogo(false);
+    }
+  };
+
+  const handleSignatureUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    try {
+      setUploadingSignature(true);
+      const data = new FormData();
+      data.append('signature', file);
+
+      const res = await axiosClient.post('/settings/signature', data, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+
+      if (res.data.success) {
+        const sigUrl = res.data.data.signatureUrl || res.data.data.signatureImageUrl;
+        setFormData((prev) => ({ ...prev, signatureUrl: sigUrl, showSignature: true }));
+        setSettings((prev) => ({ ...prev, signatureUrl: sigUrl, showSignature: true }));
+        setSuccessMsg('Authorized signature & stamp uploaded successfully!');
+        setTimeout(() => setSuccessMsg(''), 4000);
+      }
+    } catch (err) {
+      alert('Failed to upload signature: ' + err.message);
+    } finally {
+      setUploadingSignature(false);
+    }
+  };
+
+  const handleRemoveSignature = async () => {
+    if (!window.confirm('Are you sure you want to remove the authorized signature?')) return;
+    try {
+      const res = await axiosClient.delete('/settings/signature');
+      if (res.data.success) {
+        setFormData((prev) => ({ ...prev, signatureUrl: '' }));
+        setSettings((prev) => ({ ...prev, signatureUrl: '' }));
+        setSuccessMsg('Authorized signature removed successfully!');
+        setTimeout(() => setSuccessMsg(''), 4000);
+      }
+    } catch (err) {
+      alert('Failed to remove signature: ' + err.message);
     }
   };
 
@@ -184,6 +229,7 @@ export default function SettingsPage() {
   const tabs = [
     { id: 'company', label: 'Company Profile', icon: Building2 },
     { id: 'logo', label: 'Logo Management', icon: ImageIcon },
+    { id: 'signature', label: 'Signature & Stamp', icon: PenTool },
     { id: 'bank', label: 'Bank & Payments', icon: CreditCard },
     { id: 'numbering', label: 'Doc Numbering', icon: Hash },
     { id: 'terms', label: 'Default Terms', icon: FileText },
@@ -374,6 +420,106 @@ export default function SettingsPage() {
                 <span className="text-gray-400 text-[11px]">
                   PNG or JPG (transparent background recommended)
                 </span>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Tab: Authorized Signature & Stamp */}
+        {activeTab === 'signature' && (
+          <div className="p-6 space-y-6 text-xs max-w-xl">
+            <div className="border border-gray-200 rounded-2xl p-6 bg-gray-50 text-center">
+              <span className="text-gray-500 font-semibold uppercase tracking-wider text-[10px] block mb-3">
+                Current Authorized Signature & Stamp
+              </span>
+              <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm inline-block min-w-[240px]">
+                {formData.signatureUrl ? (
+                  <img
+                    src={resolveMediaUrl(formData.signatureUrl)}
+                    alt="Authorized Signature & Stamp"
+                    className="max-h-24 max-w-full object-contain mx-auto"
+                  />
+                ) : (
+                  <div className="py-4 text-center">
+                    <img
+                      src={signatureImg}
+                      alt="Default Greatway Signature"
+                      className="max-h-24 max-w-full object-contain mx-auto opacity-75"
+                    />
+                    <span className="text-[10px] text-gray-400 mt-2 block">(Default System Signature Active)</span>
+                  </div>
+                )}
+              </div>
+              <p className="text-[11px] text-gray-500 mt-3 leading-relaxed">
+                This signature and company stamp appears directly above the <strong>Authorized Signatory</strong> line on all exported Performa Invoices and Quotations.
+              </p>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <label className="block font-semibold text-gray-700 mb-2">
+                  Upload Custom Signature / Stamp File
+                </label>
+                <div className="flex flex-wrap items-center gap-3">
+                  <label className="cursor-pointer inline-flex items-center gap-2 px-4 py-2 bg-brand-800 hover:bg-brand-900 text-white font-semibold rounded-xl transition shadow-xs">
+                    {uploadingSignature ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <Upload className="w-4 h-4" />
+                    )}
+                    <span>Upload Signature Image</span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleSignatureUpload}
+                      className="hidden"
+                    />
+                  </label>
+
+                  {formData.signatureUrl && (
+                    <button
+                      type="button"
+                      onClick={handleRemoveSignature}
+                      className="inline-flex items-center gap-1.5 px-3 py-2 border border-red-200 hover:bg-red-50 text-red-700 rounded-xl font-semibold transition"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                      <span>Remove Signature</span>
+                    </button>
+                  )}
+
+                  <span className="text-gray-400 text-[11px]">
+                    PNG with transparent background recommended
+                  </span>
+                </div>
+              </div>
+
+              <div className="p-4 bg-gray-50 border border-gray-200 rounded-xl">
+                <label className="flex items-center gap-2.5 cursor-pointer font-semibold text-gray-800">
+                  <input
+                    type="checkbox"
+                    checked={formData.showSignature !== false}
+                    onChange={(e) =>
+                      setFormData({ ...formData, showSignature: e.target.checked })
+                    }
+                    className="w-4 h-4 rounded text-brand-800 focus:ring-brand-800 border-gray-300"
+                  />
+                  <span>Show authorized signature on invoices and quotations by default</span>
+                </label>
+                <p className="text-[11px] text-gray-500 mt-1 pl-6">
+                  When enabled, the signature image is automatically included on all PDF downloads and printed documents.
+                </p>
+              </div>
+
+              <div className="pt-2">
+                <button
+                  type="button"
+                  onClick={handleSaveSettings}
+                  disabled={saving}
+                  className="px-4 py-2 bg-brand-800 hover:bg-brand-900 text-white rounded-xl font-semibold shadow transition disabled:opacity-50 inline-flex items-center gap-2"
+                >
+                  {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                  <span>Save Signature Preferences</span>
+                </button>
               </div>
             </div>
           </div>

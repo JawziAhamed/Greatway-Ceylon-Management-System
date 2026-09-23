@@ -1,6 +1,7 @@
 import React from 'react';
 import logoImg from '../../assets/logo.png';
 import watermarkLogoImg from '../../assets/watermark_logo.png';
+import signatureImg from '../../assets/signature.png';
 import { formatCurrency, formatDate } from './QuotationDocument';
 import { resolveMediaUrl } from '../../api/axiosClient';
 import { formatIncotermDisplay, getIncotermCode } from '../../utils/incoterms';
@@ -347,9 +348,18 @@ export default function PerformaInvoiceDocument({ invoice, settings = {} }) {
         </div>
 
         {/* Signatory Area */}
-        <div className="flex justify-end mt-2.5">
-          <div className="text-center w-52">
-            <div className="border-b border-black h-8 mb-1"></div>
+        <div className="flex justify-end mt-1.5">
+          <div className="text-center w-56 relative z-10">
+            {safeSettings.showSignature !== false && (
+              <div className="flex justify-center -mb-2">
+                <img
+                  src={resolveMediaUrl(safeSettings.signatureUrl) || signatureImg}
+                  alt="Authorized Signature & Stamp"
+                  className="h-14 max-w-[220px] object-contain"
+                />
+              </div>
+            )}
+            <div className="border-b border-black w-full mb-1"></div>
             <div className="text-[10px] font-medium">Authorized Signatory</div>
           </div>
         </div>

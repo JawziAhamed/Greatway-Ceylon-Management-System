@@ -38,6 +38,14 @@ const companySettingsSchema = new mongoose.Schema(
       type: String,
       default: '/uploads/logo.png',
     },
+    signatureUrl: {
+      type: String,
+      default: '/uploads/signature.png',
+    },
+    showSignature: {
+      type: Boolean,
+      default: true,
+    },
     iconUrl: {
       type: String,
       default: '/uploads/icon.jpg',

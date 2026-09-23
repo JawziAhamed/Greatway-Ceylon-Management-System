@@ -1,6 +1,7 @@
 import React from 'react';
 import logoImg from '../../assets/logo.png';
 import watermarkLogoImg from '../../assets/watermark_logo.png';
+import signatureImg from '../../assets/signature.png';
 import { resolveMediaUrl } from '../../api/axiosClient';
 import { getIncotermCode } from '../../utils/incoterms';
 
@@ -235,9 +236,18 @@ export default function QuotationDocument({ quotation, settings = {} }) {
       </div>
 
       {/* Signatory & Seal */}
-      <div className="flex justify-between items-end my-3">
+      <div className="flex justify-between items-end my-2">
         <div className="text-[9.5px]">
-          <div className="mb-4 font-mono text-gray-400 tracking-wider">...................................</div>
+          {safeSettings.showSignature !== false && (
+            <div className="mb-0.5">
+              <img
+                src={resolveMediaUrl(safeSettings.signatureUrl) || signatureImg}
+                alt="Authorized Signature & Stamp"
+                className="h-12 max-w-[200px] object-contain"
+              />
+            </div>
+          )}
+          <div className="mb-2 font-mono text-gray-400 tracking-wider">...................................</div>
           <div className="font-bold text-gray-900">{quotation.signatory?.name || 'Authorized Signatory'}</div>
           <div className="text-gray-600">{quotation.signatory?.designation || 'Chief Executive Officer'}</div>
           <div className="font-bold text-[#14663e]">{quotation.signatory?.company || companyName}</div>

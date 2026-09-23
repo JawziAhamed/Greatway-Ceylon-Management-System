@@ -1,6 +1,7 @@
 import React from 'react';
 import { createRoot } from 'react-dom/client';
-import html2pdf from 'html2pdf.js';
+import html2canvas from 'html2canvas';
+import { jsPDF } from 'jspdf';
 import axiosClient from '../api/axiosClient';
 import QuotationDocument from '../components/documents/QuotationDocument';
 import PerformaInvoiceDocument from '../components/documents/PerformaInvoiceDocument';
@@ -15,9 +16,10 @@ export const sanitizeFilename = (filename) => {
 };
 
 /**
- * Direct 1-click PDF generation from a DOM element using html2pdf.js.
- * Produces crisp vector/image A4 PDF directly in the browser.
- * Absolutely NO browser print dialog, NO date/time header, NO URL footer!
+ * Direct 1-Click Guaranteed Single-Page A4 PDF Generator.
+ * Uses html2canvas + jsPDF to render a high-resolution, perfectly scaled,
+ * guaranteed 1-page A4 PDF directly in the user's browser.
+ * Absolutely NO extra pages, NO browser print dialog, NO date/time header, NO URL footer!
  */
 export const exportElementToPdf = async (element, rawFilename) => {
   if (!element) {
@@ -26,79 +28,88 @@ export const exportElementToPdf = async (element, rawFilename) => {
 
   const filename = sanitizeFilename(rawFilename);
 
-  // Directly target the inner document if a wrapper or modal container was passed
-  const targetElement =
-    element.querySelector?.('.invoice-document-root, .quotation-document-root') ||
-    element.firstElementChild ||
-    element;
-
-  const opt = {
-    margin: [0, 0, 0, 0],
-    filename: filename,
-    image: { type: 'jpeg', quality: 0.98 },
-    html2canvas: {
-      scale: 2, // High resolution crisp rendering
-      useCORS: true,
-      logging: false,
-      letterRendering: true,
-      scrollX: 0,
-      scrollY: 0,
-      windowWidth: 1200, // Standardize layout typography across desktop & laptop screens
-      onclone: (clonedDoc) => {
-        // Strip box shadows that look weird in PDF
-        const docs = clonedDoc.querySelectorAll(
-          '.shadow-md, .shadow-lg, .shadow-sm, .shadow-xl, .shadow-2xl'
-        );
-        docs.forEach((d) => {
-          d.style.boxShadow = 'none';
-        });
-
-        // Strip outer wrapper padding that could expand canvas height
-        const wrap = clonedDoc.getElementById('printable-document-content');
-        if (wrap) {
-          wrap.style.padding = '0';
-          wrap.style.margin = '0';
-        }
-      },
-    },
-    jsPDF: {
-      unit: 'mm',
-      format: 'a4',
-      orientation: 'portrait',
-    },
-    pagebreak: { mode: ['avoid-all', 'css', 'legacy'] },
-  };
-
-  const worker = html2pdf().set(opt).from(targetElement);
-  await worker.toCanvas();
-  const canvas = worker.prop.canvas;
-  const a4Ratio = 297 / 210; // ~1.41428
-  const currentRatio = canvas ? canvas.height / canvas.width : 0;
-
-  await worker.toPdf();
-  const pdf = worker.prop.pdf;
-  const pageCount = pdf ? pdf.internal.getNumberOfPages() : 1;
-
-  // Smart 1-Page Fitting: If document has spilled slightly over 1 page (<= 1.20x A4 ratio),
-  // scale it cleanly to fit on exactly 1 single A4 page so no trailing blank/partial 2nd page is created.
-  if (canvas && currentRatio > 0 && currentRatio <= a4Ratio * 1.20 && pageCount > 1 && pdf) {
-    const JsPdfClass = pdf.constructor;
-    const singlePdf = new JsPdfClass({ orientation: 'p', unit: 'mm', format: 'a4' });
-    const pdfW = 210;
-    const pdfH = 297;
-    const imgW = pdfW;
-    const imgH = (canvas.height * imgW) / canvas.width;
-    const scale = Math.min(1, pdfH / imgH);
-    const finalW = imgW * scale;
-    const finalH = imgH * scale;
-    const x = (pdfW - finalW) / 2;
-    const y = (pdfH - finalH) / 2;
-    const imgData = canvas.toDataURL('image/jpeg', 0.98);
-    singlePdf.addImage(imgData, 'JPEG', x, y, finalW, finalH);
-    return singlePdf.save(filename);
+  // Directly target the inner document root if a wrapper or container was passed
+  let targetElement = element;
+  if (element.matches && element.matches('.invoice-document-root, .quotation-document-root')) {
+    targetElement = element;
+  } else if (element.querySelector) {
+    const matched = element.querySelector('.invoice-document-root, .quotation-document-root');
+    if (matched) {
+      targetElement = matched;
+    }
   }
 
-  return worker.save();
+  // 1. High-Resolution Canvas Rendering
+  const canvas = await html2canvas(targetElement, {
+    scale: 2, // High resolution (300 DPI equivalent)
+    useCORS: true,
+    logging: false,
+    letterRendering: true,
+    scrollX: 0,
+    scrollY: 0,
+    windowWidth: 840,
+    backgroundColor: '#ffffff',
+    onclone: (clonedDoc) => {
+      // Remove any box shadows for a crisp print appearance
+      const docs = clonedDoc.querySelectorAll(
+        '.shadow-md, .shadow-lg, .shadow-sm, .shadow-xl, .shadow-2xl'
+      );
+      docs.forEach((d) => {
+        d.style.boxShadow = 'none';
+      });
+
+      // Strip any outer container padding that could expand canvas dimensions
+      const wrap = clonedDoc.getElementById('printable-document-content');
+      if (wrap) {
+        wrap.style.padding = '0';
+        wrap.style.margin = '0';
+      }
+    },
+  });
+
+  if (!canvas || canvas.width === 0 || canvas.height === 0) {
+    throw new Error('Failed to capture document canvas');
+  }
+
+  // 2. Build strictly 1-page jsPDF document
+  const pdf = new jsPDF({
+    orientation: 'portrait',
+    unit: 'mm',
+    format: 'a4',
+    compress: true,
+  });
+
+  const a4Width = 210;
+  const a4Height = 297;
+  const margin = 2; // Clean 2mm border margin
+  const printableWidth = a4Width - margin * 2;
+  const printableHeight = a4Height - margin * 2;
+
+  const imgRatio = canvas.width / canvas.height;
+  const printableRatio = printableWidth / printableHeight;
+
+  let finalWidth, finalHeight, x, y;
+
+  if (imgRatio < printableRatio) {
+    // Document is taller than A4 aspect ratio: fit to printable height
+    finalHeight = printableHeight;
+    finalWidth = printableHeight * imgRatio;
+    x = margin + (printableWidth - finalWidth) / 2;
+    y = margin;
+  } else {
+    // Document is wider than or equal to A4 aspect ratio: fit to printable width
+    finalWidth = printableWidth;
+    finalHeight = printableWidth / imgRatio;
+    x = margin;
+    y = margin + (printableHeight - finalHeight) / 2;
+  }
+
+  const imgData = canvas.toDataURL('image/jpeg', 0.98);
+  pdf.addImage(imgData, 'JPEG', x, y, finalWidth, finalHeight, undefined, 'FAST');
+
+  // Trigger download directly
+  pdf.save(filename);
+  return { success: true, pageCount: 1 };
 };
 
 /**

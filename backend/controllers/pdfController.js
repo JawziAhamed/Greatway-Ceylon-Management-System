@@ -132,11 +132,12 @@ const generateQuotationPdf = async (req, res) => {
       const pdfBuffer = await page.pdf({
         format: 'A4',
         printBackground: true,
+        pageRanges: '1',
         margin: {
-          top: '5mm',
-          right: '8mm',
-          bottom: '5mm',
-          left: '8mm',
+          top: '0mm',
+          right: '0mm',
+          bottom: '0mm',
+          left: '0mm',
         },
       });
 
@@ -227,11 +228,12 @@ const generateInvoicePdf = async (req, res) => {
       const pdfBuffer = await page.pdf({
         format: 'A4',
         printBackground: true,
+        pageRanges: '1',
         margin: {
-          top: '4mm',
-          right: '6mm',
-          bottom: '4mm',
-          left: '6mm',
+          top: '0mm',
+          right: '0mm',
+          bottom: '0mm',
+          left: '0mm',
         },
       });
 

@@ -73,13 +73,45 @@ const uploadSignature = async (req, res) => {
     }
 
     const settings = await getOrCreateSettings();
-    settings.defaultSignatory.signatureImageUrl = `/uploads/${req.file.filename}`;
+    const sigPath = `/uploads/${req.file.filename}`;
+    if (!settings.defaultSignatory) {
+      settings.defaultSignatory = {};
+    }
+    settings.defaultSignatory.signatureImageUrl = sigPath;
+    settings.signatureUrl = sigPath;
+    settings.showSignature = true;
     await settings.save();
 
     res.json({
       success: true,
-      data: { signatureImageUrl: settings.defaultSignatory.signatureImageUrl },
+      data: {
+        signatureImageUrl: sigPath,
+        signatureUrl: sigPath,
+        showSignature: true,
+      },
       message: 'Signature image uploaded successfully',
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// @desc    Remove signatory signature
+// @route   DELETE /api/settings/signature
+// @access  Private/Admin
+const removeSignature = async (req, res) => {
+  try {
+    const settings = await getOrCreateSettings();
+    if (settings.defaultSignatory) {
+      settings.defaultSignatory.signatureImageUrl = '';
+    }
+    settings.signatureUrl = '';
+    await settings.save();
+
+    res.json({
+      success: true,
+      data: { signatureImageUrl: '', signatureUrl: '' },
+      message: 'Signature image removed successfully',
     });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
@@ -91,4 +123,5 @@ module.exports = {
   updateSettings,
   uploadLogo,
   uploadSignature,
+  removeSignature,
 };
