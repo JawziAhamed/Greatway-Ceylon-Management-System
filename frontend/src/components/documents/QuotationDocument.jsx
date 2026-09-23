@@ -152,27 +152,27 @@ export default function QuotationDocument({ quotation, settings = {}, onUploadSi
       <table className="w-full border-collapse mb-2 text-[10.5px]">
         <thead>
           <tr className="bg-[#cf9e62] text-black">
-            <th className="border border-[#b88a52] py-1.5 px-1 text-center w-7 font-bold">#</th>
-            <th className="border border-[#b88a52] py-1.5 px-1.5 text-center w-16 font-bold">ITEM NAME</th>
-            <th className="border border-[#b88a52] py-1.5 px-2 text-left font-bold">DESCRIPTION</th>
-            <th className="border border-[#b88a52] py-1.5 px-1.5 text-center w-24 font-bold">Net Weight Per Box</th>
-            <th className="border border-[#b88a52] py-1.5 px-1.5 text-right w-24 font-bold">Rate per Nut/ Kg in USD</th>
-            <th className="border border-[#b88a52] py-1.5 px-1.5 text-right w-20 font-bold">Per Box Rate (USD)</th>
-            <th className="border border-[#b88a52] py-1.5 px-1.5 text-right w-20 font-bold">Quantity Cartons</th>
-            <th className="border border-[#b88a52] py-1.5 px-2 text-right w-24 font-bold">Total Amount (USD)</th>
+            <th className="border border-[#b88a52] py-2 px-1 text-center w-7 font-bold">#</th>
+            <th className="border border-[#b88a52] py-2 px-1.5 text-center w-16 font-bold">ITEM NAME</th>
+            <th className="border border-[#b88a52] py-2 px-2 text-left font-bold">DESCRIPTION</th>
+            <th className="border border-[#b88a52] py-2 px-1.5 text-center w-24 font-bold">Net Weight Per Box</th>
+            <th className="border border-[#b88a52] py-2 px-1.5 text-right w-24 font-bold">Rate per Nut/ Kg in USD</th>
+            <th className="border border-[#b88a52] py-2 px-1.5 text-right w-20 font-bold">Per Box Rate (USD)</th>
+            <th className="border border-[#b88a52] py-2 px-1.5 text-right w-20 font-bold">Quantity Cartons</th>
+            <th className="border border-[#b88a52] py-2 px-2 text-right w-24 font-bold">Total Amount (USD)</th>
           </tr>
         </thead>
         <tbody>
           {(quotation.items || []).map((item, idx) => (
             <tr key={idx} className="hover:bg-gray-50/50">
-              <td className="border border-gray-400 py-1 px-1 text-center">{idx + 1}</td>
-              <td className="border border-gray-400 py-1 px-1 text-center font-medium">{item.itemCode || ''}</td>
-              <td className="border border-gray-400 py-1 px-2">{item.description}</td>
-              <td className="border border-gray-400 py-1 px-1 text-center">{item.netWeightPerBox}</td>
-              <td className="border border-gray-400 py-1 px-1 text-right">$ {formatCurrency(item.ratePerNutKg)}</td>
-              <td className="border border-gray-400 py-1 px-1 text-right">$ {formatCurrency(item.boxRate)}</td>
-              <td className="border border-gray-400 py-1 px-1 text-right font-medium">{formatCurrency(item.quantityCartons)}</td>
-              <td className="border border-gray-400 py-1 px-2 text-right font-medium">$ {formatCurrency(item.lineTotal)}</td>
+              <td className="border border-gray-400 py-1.5 px-1 text-center">{idx + 1}</td>
+              <td className="border border-gray-400 py-1.5 px-1 text-center font-medium">{item.itemCode || ''}</td>
+              <td className="border border-gray-400 py-1.5 px-2">{item.description}</td>
+              <td className="border border-gray-400 py-1.5 px-1 text-center">{item.netWeightPerBox}</td>
+              <td className="border border-gray-400 py-1.5 px-1 text-right">$ {formatCurrency(item.ratePerNutKg)}</td>
+              <td className="border border-gray-400 py-1.5 px-1 text-right">$ {formatCurrency(item.boxRate)}</td>
+              <td className="border border-gray-400 py-1.5 px-1 text-right font-medium">{formatCurrency(item.quantityCartons)}</td>
+              <td className="border border-gray-400 py-1.5 px-2 text-right font-medium">$ {formatCurrency(item.lineTotal)}</td>
             </tr>
           ))}
 
@@ -181,33 +181,33 @@ export default function QuotationDocument({ quotation, settings = {}, onUploadSi
               .filter((c) => Number(c.amount || 0) > 0 || c.description)
               .map((charge, idx) => (
                 <tr key={`charge-${idx}`}>
-                  <td colSpan={7} className="border border-gray-400 py-1 px-2 italic text-gray-700">
+                  <td colSpan={7} className="border border-gray-400 py-1.5 px-2 italic text-gray-700">
                     {charge.description || 'Additional Charge / Freight'}
                   </td>
-                  <td className="border border-gray-400 py-1 px-2 text-right font-medium">
+                  <td className="border border-gray-400 py-1.5 px-2 text-right font-medium">
                     $ {formatCurrency(charge.amount)}
                   </td>
                 </tr>
               ))
           ) : Number(quotation.freightCost || 0) > 0 ? (
             <tr>
-              <td colSpan={7} className="border border-gray-400 py-1 px-2 italic text-gray-700">
+              <td colSpan={7} className="border border-gray-400 py-1.5 px-2 italic text-gray-700">
                 {quotation.freightDescription || 'Free time at destination added cost for Freight'}
               </td>
-              <td className="border border-gray-400 py-1 px-2 text-right font-medium">
+              <td className="border border-gray-400 py-1.5 px-2 text-right font-medium">
                 $ {formatCurrency(quotation.freightCost)}
               </td>
             </tr>
           ) : null}
 
           <tr className="font-bold bg-white">
-            <td colSpan={6} className="border border-gray-400 py-1.5 px-3 text-left font-bold">
+            <td colSpan={6} className="border border-gray-400 py-2 px-3 text-left font-bold">
               Total
             </td>
-            <td className="border border-gray-400 py-1.5 px-1 text-right">
+            <td className="border border-gray-400 py-2 px-1 text-right">
               {formatCurrency(quotation.totalCartons)}
             </td>
-            <td className="border border-gray-400 py-1.5 px-2 text-right">
+            <td className="border border-gray-400 py-2 px-2 text-right">
               $ {formatCurrency(quotation.grandTotal)}
             </td>
           </tr>
@@ -225,9 +225,9 @@ export default function QuotationDocument({ quotation, settings = {}, onUploadSi
         <div className="font-bold text-[10.5px] text-gray-900 mb-1">
           Specific Terms and Conditions
         </div>
-        <ol className="list-decimal pl-4 space-y-0.5 text-gray-800">
+        <ol className="list-decimal pl-4 space-y-1 text-gray-800">
           {specificTerms.map((term, index) => (
-            <li key={index}>{term}</li>
+            <li key={index} className="leading-snug">{term}</li>
           ))}
         </ol>
       </div>
@@ -294,23 +294,23 @@ export default function QuotationDocument({ quotation, settings = {}, onUploadSi
         <table className="w-full border-collapse border border-gray-600 text-[10px]">
           <tbody>
             <tr>
-              <td className="border border-gray-500 w-36 px-2 py-1 font-medium bg-gray-50">Signature</td>
+              <td className="border border-gray-500 w-36 px-2 py-1.5 font-medium bg-gray-50">Signature</td>
+              <td className="border border-gray-500 h-7 px-2"></td>
+            </tr>
+            <tr>
+              <td className="border border-gray-500 px-2 py-1.5 font-medium bg-gray-50">Signatory Name</td>
               <td className="border border-gray-500 h-6 px-2"></td>
             </tr>
             <tr>
-              <td className="border border-gray-500 px-2 py-1 font-medium bg-gray-50">Signatory Name</td>
-              <td className="border border-gray-500 h-5 px-2"></td>
+              <td className="border border-gray-500 px-2 py-1.5 font-medium bg-gray-50">Designation</td>
+              <td className="border border-gray-500 h-6 px-2"></td>
             </tr>
             <tr>
-              <td className="border border-gray-500 px-2 py-1 font-medium bg-gray-50">Designation</td>
-              <td className="border border-gray-500 h-5 px-2"></td>
+              <td className="border border-gray-500 px-2 py-1.5 font-medium bg-gray-50">Date</td>
+              <td className="border border-gray-500 h-6 px-2"></td>
             </tr>
             <tr>
-              <td className="border border-gray-500 px-2 py-1 font-medium bg-gray-50">Date</td>
-              <td className="border border-gray-500 h-5 px-2"></td>
-            </tr>
-            <tr>
-              <td className="border border-gray-500 px-2 py-1 font-medium bg-gray-50">Company Seal</td>
+              <td className="border border-gray-500 px-2 py-1.5 font-medium bg-gray-50">Company Seal</td>
               <td className="border border-gray-500 h-8 px-2"></td>
             </tr>
           </tbody>

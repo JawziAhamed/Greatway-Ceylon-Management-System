@@ -61,14 +61,14 @@ const generateQuotationHTML = (quotation, settings = {}, logoBase64, signatureBa
     .map(
       (item, idx) => `
     <tr>
-      <td style="text-align: center; border: 1px solid #777; padding: 4px 6px; font-size: 11px;">${idx + 1}</td>
-      <td style="text-align: center; border: 1px solid #777; padding: 4px 6px; font-size: 11px; font-weight: 500;">${item.itemCode || ''}</td>
-      <td style="border: 1px solid #777; padding: 4px 6px; font-size: 11px;">${item.description || ''}</td>
-      <td style="text-align: center; border: 1px solid #777; padding: 4px 6px; font-size: 11px;">${item.netWeightPerBox || ''}</td>
-      <td style="text-align: right; border: 1px solid #777; padding: 4px 6px; font-size: 11px;">$ ${formatAmount(item.ratePerNutKg)}</td>
-      <td style="text-align: right; border: 1px solid #777; padding: 4px 6px; font-size: 11px;">$ ${formatAmount(item.boxRate)}</td>
-      <td style="text-align: right; border: 1px solid #777; padding: 4px 6px; font-size: 11px; font-weight: 500;">${formatAmount(item.quantityCartons)}</td>
-      <td style="text-align: right; border: 1px solid #777; padding: 4px 6px; font-size: 11px; font-weight: 500;">$ ${formatAmount(item.lineTotal)}</td>
+      <td style="text-align: center; border: 1px solid #777; padding: 6px 6px; font-size: 11px;">${idx + 1}</td>
+      <td style="text-align: center; border: 1px solid #777; padding: 6px 6px; font-size: 11px; font-weight: 500;">${item.itemCode || ''}</td>
+      <td style="border: 1px solid #777; padding: 6px 6px; font-size: 11px;">${item.description || ''}</td>
+      <td style="text-align: center; border: 1px solid #777; padding: 6px 6px; font-size: 11px;">${item.netWeightPerBox || ''}</td>
+      <td style="text-align: right; border: 1px solid #777; padding: 6px 6px; font-size: 11px;">$ ${formatAmount(item.ratePerNutKg)}</td>
+      <td style="text-align: right; border: 1px solid #777; padding: 6px 6px; font-size: 11px;">$ ${formatAmount(item.boxRate)}</td>
+      <td style="text-align: right; border: 1px solid #777; padding: 6px 6px; font-size: 11px; font-weight: 500;">${formatAmount(item.quantityCartons)}</td>
+      <td style="text-align: right; border: 1px solid #777; padding: 6px 6px; font-size: 11px; font-weight: 500;">$ ${formatAmount(item.lineTotal)}</td>
     </tr>
   `
     )
@@ -78,10 +78,10 @@ const generateQuotationHTML = (quotation, settings = {}, logoBase64, signatureBa
     Number(quotation.freightCost || 0) > 0
       ? `
     <tr>
-      <td colspan="7" style="border: 1px solid #777; padding: 4px 8px; font-size: 11px; font-style: italic;">
+      <td colspan="7" style="border: 1px solid #777; padding: 6px 8px; font-size: 11px; font-style: italic;">
         ${quotation.freightDescription || 'Free time at destination added cost for Freight'}
       </td>
-      <td style="text-align: right; border: 1px solid #777; padding: 4px 6px; font-size: 11px; font-weight: 500;">
+      <td style="text-align: right; border: 1px solid #777; padding: 6px 6px; font-size: 11px; font-weight: 500;">
         $ ${formatAmount(quotation.freightCost)}
       </td>
     </tr>
@@ -99,7 +99,7 @@ const generateQuotationHTML = (quotation, settings = {}, logoBase64, signatureBa
     .filter((term) => term && String(term).trim())
     .map(
       (term, index) =>
-        `<li style="margin-bottom: 3px; line-height: 1.35; font-size: 10px;">${term}</li>`
+        `<li style="margin-bottom: 5px; line-height: 1.35; font-size: 10px;">${term}</li>`
     )
     .join('');
 
@@ -132,8 +132,13 @@ const generateQuotationHTML = (quotation, settings = {}, logoBase64, signatureBa
     .container {
       width: 100%;
       max-width: 800px;
+      min-height: 285mm;
       margin: 0 auto;
       position: relative;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      box-sizing: border-box;
     }
     .header-row {
       display: flex;
@@ -504,14 +509,14 @@ const generateInvoiceHTML = (invoice, settings = {}, logoBase64, signatureBase64
     .map(
       (item, idx) => `
     <tr>
-      <td style="text-align: center; border: 1px solid #777; padding: 4px 6px; font-size: 11px;">${idx + 1}</td>
-      <td style="text-align: center; border: 1px solid #777; padding: 4px 6px; font-size: 11px; font-weight: 500;">${getItemCode(item)}</td>
-      <td style="border: 1px solid #777; padding: 4px 6px; font-size: 11px;">${item.description || ''}</td>
-      <td style="text-align: center; border: 1px solid #777; padding: 4px 6px; font-size: 11px;">${item.netWeightPerBox || item.perBoxWeight || ''}</td>
-      <td style="text-align: right; border: 1px solid #777; padding: 4px 6px; font-size: 11px;">$ ${formatAmount(item.ratePerNutKg)}</td>
-      <td style="text-align: right; border: 1px solid #777; padding: 4px 6px; font-size: 11px;">$ ${formatAmount(item.boxRate)}</td>
-      <td style="text-align: right; border: 1px solid #777; padding: 4px 6px; font-size: 11px; font-weight: 500;">${formatAmount(item.quantityCartons !== undefined ? item.quantityCartons : item.packages)}</td>
-      <td style="text-align: right; border: 1px solid #777; padding: 4px 6px; font-size: 11px; font-weight: 500;">$ ${formatAmount(item.lineTotal !== undefined ? item.lineTotal : item.cifValue)}</td>
+      <td style="text-align: center; border: 1px solid #777; padding: 6px 6px; font-size: 11px;">${idx + 1}</td>
+      <td style="text-align: center; border: 1px solid #777; padding: 6px 6px; font-size: 11px; font-weight: 500;">${getItemCode(item)}</td>
+      <td style="border: 1px solid #777; padding: 6px 6px; font-size: 11px;">${item.description || ''}</td>
+      <td style="text-align: center; border: 1px solid #777; padding: 6px 6px; font-size: 11px;">${item.netWeightPerBox || item.perBoxWeight || ''}</td>
+      <td style="text-align: right; border: 1px solid #777; padding: 6px 6px; font-size: 11px;">$ ${formatAmount(item.ratePerNutKg)}</td>
+      <td style="text-align: right; border: 1px solid #777; padding: 6px 6px; font-size: 11px;">$ ${formatAmount(item.boxRate)}</td>
+      <td style="text-align: right; border: 1px solid #777; padding: 6px 6px; font-size: 11px; font-weight: 500;">${formatAmount(item.quantityCartons !== undefined ? item.quantityCartons : item.packages)}</td>
+      <td style="text-align: right; border: 1px solid #777; padding: 6px 6px; font-size: 11px; font-weight: 500;">$ ${formatAmount(item.lineTotal !== undefined ? item.lineTotal : item.cifValue)}</td>
     </tr>
   `
     )
@@ -521,10 +526,10 @@ const generateInvoiceHTML = (invoice, settings = {}, logoBase64, signatureBase64
     (Number(invoice.freightCharges || 0) > 0 || Number(invoice.freightCost || 0) > 0)
       ? `
     <tr>
-      <td colspan="7" style="border: 1px solid #777; padding: 4px 8px; font-size: 11px; text-align: left; font-style: italic;">
+      <td colspan="7" style="border: 1px solid #777; padding: 6px 8px; font-size: 11px; text-align: left; font-style: italic;">
         ${invoice.freightDescription || 'Free time at destination added cost for Freight'}
       </td>
-      <td style="text-align: right; border: 1px solid #777; padding: 4px 6px; font-size: 11px; font-weight: 500;">
+      <td style="text-align: right; border: 1px solid #777; padding: 6px 6px; font-size: 11px; font-weight: 500;">
         $ ${formatAmount(invoice.freightCharges || invoice.freightCost)}
       </td>
     </tr>
@@ -538,10 +543,10 @@ const generateInvoiceHTML = (invoice, settings = {}, logoBase64, signatureBase64
           .map(
             (c) => `
       <tr>
-        <td colspan="7" style="border: 1px solid #777; padding: 4px 8px; font-size: 11px; text-align: left; font-style: italic;">
+        <td colspan="7" style="border: 1px solid #777; padding: 6px 8px; font-size: 11px; text-align: left; font-style: italic;">
           ${c.description || 'Additional Charge / Freight'}
         </td>
-        <td style="text-align: right; border: 1px solid #777; padding: 4px 6px; font-size: 11px; font-weight: 500;">
+        <td style="text-align: right; border: 1px solid #777; padding: 6px 6px; font-size: 11px; font-weight: 500;">
           $ ${formatAmount(c.amount)}
         </td>
       </tr>
@@ -564,7 +569,7 @@ const generateInvoiceHTML = (invoice, settings = {}, logoBase64, signatureBase64
         ];
 
   const termsListHTML = termsList
-    .map((point) => `<div style="margin-bottom: 3px; line-height: 1.35;">${point}</div>`)
+    .map((point) => `<div style="margin-bottom: 5px; line-height: 1.35;">${point}</div>`)
     .join('');
 
   const watermarkBase64 = getWatermarkBase64();
@@ -596,10 +601,15 @@ const generateInvoiceHTML = (invoice, settings = {}, logoBase64, signatureBase64
     .document-frame {
       width: 100%;
       max-width: 800px;
+      min-height: 285mm;
       margin: 0 auto;
       border: 1.5px solid #111;
-      padding: 8px 10px;
+      padding: 10px 12px;
       position: relative;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      box-sizing: border-box;
     }
     .header-section {
       display: flex;

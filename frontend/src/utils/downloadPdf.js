@@ -46,7 +46,15 @@ export const exportElementToPdf = async (element, rawFilename) => {
     logging: false,
     letterRendering: true,
     backgroundColor: '#ffffff',
+    windowWidth: 1200,
     onclone: (clonedDoc) => {
+      // Ensure target element is fixed at exactly 794px width and at least 1123px height
+      const targetDoc = clonedDoc.querySelector('.invoice-document-root, .quotation-document-root');
+      if (targetDoc) {
+        targetDoc.style.width = '794px';
+        targetDoc.style.maxWidth = '794px';
+        targetDoc.style.minHeight = '1123px';
+      }
       // Remove any heavy drop shadows for clean print rendering
       const docs = clonedDoc.querySelectorAll(
         '.shadow-md, .shadow-lg, .shadow-sm, .shadow-xl, .shadow-2xl'

@@ -207,20 +207,20 @@ export default function PerformaInvoiceDocument({ invoice, settings = {}, onUplo
         <table className="w-full border-collapse my-2 text-[10.5px]">
           <thead>
             <tr className="bg-[#cf9e62] text-black">
-              <th className="border border-[#b88a52] py-1.5 px-1 text-center w-7 font-bold">#</th>
-              <th className="border border-[#b88a52] py-1.5 px-1.5 text-center w-16 font-bold">ITEM NAME</th>
-              <th className="border border-[#b88a52] py-1.5 px-2 text-center font-bold">DESCRIPTION</th>
-              <th className="border border-[#b88a52] py-1.5 px-1.5 text-center w-24 font-bold">Net Weight Per Box</th>
-              <th className="border border-[#b88a52] py-1.5 px-1.5 text-center w-24 font-bold leading-tight">
+              <th className="border border-[#b88a52] py-2 px-1 text-center w-7 font-bold">#</th>
+              <th className="border border-[#b88a52] py-2 px-1.5 text-center w-16 font-bold">ITEM NAME</th>
+              <th className="border border-[#b88a52] py-2 px-2 text-center font-bold">DESCRIPTION</th>
+              <th className="border border-[#b88a52] py-2 px-1.5 text-center w-24 font-bold">Net Weight Per Box</th>
+              <th className="border border-[#b88a52] py-2 px-1.5 text-center w-24 font-bold leading-tight">
                 Rate per Nut/ Kg in {invoice.currency || 'USD'}
               </th>
-              <th className="border border-[#b88a52] py-1.5 px-1.5 text-center w-20 font-bold leading-tight">
+              <th className="border border-[#b88a52] py-2 px-1.5 text-center w-20 font-bold leading-tight">
                 Per Box Rate ({invoice.currency || 'USD'})
               </th>
-              <th className="border border-[#b88a52] py-1.5 px-1.5 text-center w-20 font-bold leading-tight">
+              <th className="border border-[#b88a52] py-2 px-1.5 text-center w-20 font-bold leading-tight">
                 Quantity Cartons
               </th>
-              <th className="border border-[#b88a52] py-1.5 px-2 text-center w-24 font-bold leading-tight">
+              <th className="border border-[#b88a52] py-2 px-2 text-center w-24 font-bold leading-tight">
                 Total Amount ({invoice.currency || 'USD'})
               </th>
             </tr>
@@ -228,24 +228,24 @@ export default function PerformaInvoiceDocument({ invoice, settings = {}, onUplo
           <tbody>
             {(invoice.items || []).map((item, idx) => (
               <tr key={idx} className="hover:bg-gray-50/50">
-                <td className="border border-gray-400 py-1 px-1 text-center font-normal">{idx + 1}</td>
-                <td className="border border-gray-400 py-1 px-1.5 text-center font-normal">
+                <td className="border border-gray-400 py-1.5 px-1 text-center font-normal">{idx + 1}</td>
+                <td className="border border-gray-400 py-1.5 px-1.5 text-center font-normal">
                   {getItemCode(item)}
                 </td>
-                <td className="border border-gray-400 py-1 px-2 text-left font-normal">{item.description}</td>
-                <td className="border border-gray-400 py-1 px-1.5 text-center font-normal">
+                <td className="border border-gray-400 py-1.5 px-2 text-left font-normal">{item.description}</td>
+                <td className="border border-gray-400 py-1.5 px-1.5 text-center font-normal">
                   {item.netWeightPerBox || item.perBoxWeight || ''}
                 </td>
-                <td className="border border-gray-400 py-1 px-1.5 text-right font-normal">
+                <td className="border border-gray-400 py-1.5 px-1.5 text-right font-normal">
                   {currSym} {formatCurrency(item.ratePerNutKg)}
                 </td>
-                <td className="border border-gray-400 py-1 px-1.5 text-right font-normal">
+                <td className="border border-gray-400 py-1.5 px-1.5 text-right font-normal">
                   {currSym} {formatCurrency(item.boxRate)}
                 </td>
-                <td className="border border-gray-400 py-1 px-1.5 text-right font-normal">
+                <td className="border border-gray-400 py-1.5 px-1.5 text-right font-normal">
                   {formatCurrency(item.quantityCartons !== undefined ? item.quantityCartons : item.packages)}
                 </td>
-                <td className="border border-gray-400 py-1 px-2 text-right font-normal">
+                <td className="border border-gray-400 py-1.5 px-2 text-right font-normal">
                   {currSym} {formatCurrency(item.lineTotal !== undefined ? item.lineTotal : item.cifValue)}
                 </td>
               </tr>
@@ -254,33 +254,33 @@ export default function PerformaInvoiceDocument({ invoice, settings = {}, onUplo
             {invoice.additionalCharges && invoice.additionalCharges.length > 0 ? (
               invoice.additionalCharges.filter((c) => Number(c.amount || 0) > 0 || c.description).map((charge, cIdx) => (
                 <tr key={`charge-${cIdx}`}>
-                  <td colSpan={7} className="border border-gray-400 py-1 px-2 text-left italic text-gray-700">
+                  <td colSpan={7} className="border border-gray-400 py-1.5 px-2 text-left italic text-gray-700">
                     {charge.description || 'Additional Charge / Freight'}
                   </td>
-                  <td className="border border-gray-400 py-1 px-2 text-right font-normal">
+                  <td className="border border-gray-400 py-1.5 px-2 text-right font-normal">
                     {currSym} {formatCurrency(charge.amount)}
                   </td>
                 </tr>
               ))
             ) : (Number(invoice.freightCharges || 0) > 0 || Number(invoice.freightCost || 0) > 0) ? (
               <tr>
-                <td colSpan={7} className="border border-gray-400 py-1 px-2 text-left italic text-gray-700">
+                <td colSpan={7} className="border border-gray-400 py-1.5 px-2 text-left italic text-gray-700">
                   {invoice.freightDescription || 'Free time at destination added cost for Freight'}
                 </td>
-                <td className="border border-gray-400 py-1 px-2 text-right font-normal">
+                <td className="border border-gray-400 py-1.5 px-2 text-right font-normal">
                   {currSym} {formatCurrency(invoice.freightCharges || invoice.freightCost)}
                 </td>
               </tr>
             ) : null}
 
             <tr className="font-bold bg-white">
-              <td colSpan={6} className="border border-gray-400 py-1.5 px-3 text-left font-bold">
+              <td colSpan={6} className="border border-gray-400 py-2 px-3 text-left font-bold">
                 Total
               </td>
-              <td className="border border-gray-400 py-1.5 px-1.5 text-right font-bold">
+              <td className="border border-gray-400 py-2 px-1.5 text-right font-bold">
                 {formatCurrency(totalCartons)}
               </td>
-              <td className="border border-gray-400 py-1.5 px-2 text-right font-bold">
+              <td className="border border-gray-400 py-2 px-2 text-right font-bold">
                 {currSym} {formatCurrency(invoice.grandTotal || invoice.totalAmount || 0)}
               </td>
             </tr>
@@ -289,19 +289,19 @@ export default function PerformaInvoiceDocument({ invoice, settings = {}, onUplo
 
         {/* Amount in Words */}
         {invoice.amountInWords && (
-          <div className="border border-gray-400 border-t-0 py-1 px-2 text-[10px] font-bold bg-gray-50/40 mb-2">
+          <div className="border border-gray-400 border-t-0 py-1.5 px-2.5 text-[10px] font-bold bg-gray-50/40 mb-2">
             Amount in Words: {invoice.amountInWords}
           </div>
         )}
 
         {/* Terms & Conditions */}
-        <div className="mt-2 text-[9.5px] leading-tight">
-          <div className="font-bold underline text-[10px] mb-0.5">
+        <div className="mt-2 text-[9.5px] leading-snug">
+          <div className="font-bold underline text-[10px] mb-1">
             TERMS & CONDITIONS
           </div>
-          <div className="text-gray-800 space-y-0.5">
+          <div className="text-gray-800 space-y-1">
             {termsList.map((point, idx) => (
-              <div key={idx} className="leading-tight">
+              <div key={idx} className="leading-snug">
                 {point}
               </div>
             ))}
