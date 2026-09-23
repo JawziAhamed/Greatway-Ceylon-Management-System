@@ -146,7 +146,12 @@ export default function PerformaInvoiceDocument({ invoice, settings = {}, onUplo
                     {getIncotermCode(invoice.incoterms) || invoice.incoterms || 'CIF'}
                   </span>
                 </div>
-                <div className="flex items-start">
+                {/* Status: Visible to user in system, hidden in downloaded PDF and print */}
+                <div
+                  data-html2canvas-ignore="true"
+                  data-pdf-hidden="true"
+                  className="flex items-start print:hidden document-status-row"
+                >
                   <span className="font-bold w-[125px] shrink-0 whitespace-nowrap">STATUS:</span>
                   <span className="font-bold text-green-700 uppercase flex-1 min-w-0 leading-tight">
                     {invoice.status || 'DRAFT'}

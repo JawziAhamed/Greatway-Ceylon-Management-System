@@ -803,10 +803,6 @@ const generateInvoiceHTML = (invoice, settings = {}, logoBase64, signatureBase64
                 <td style="border: none; padding: 2px 6px 2px 0; font-weight: bold; width: 130px; white-space: nowrap;">INCOTERMS:</td>
                 <td style="border: none; padding: 2px 0; font-weight: bold;">${getIncotermCode(invoice.incoterms) || invoice.incoterms || 'CIF'}</td>
               </tr>
-              <tr>
-                <td style="border: none; padding: 2px 6px 2px 0; font-weight: bold; width: 130px; white-space: nowrap;">STATUS:</td>
-                <td style="border: none; padding: 2px 0; font-weight: bold; color: #16a34a; text-transform: uppercase;">${invoice.status || 'DRAFT'}</td>
-              </tr>
             </table>
           </div>
         </td>

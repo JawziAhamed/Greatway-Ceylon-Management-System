@@ -55,6 +55,14 @@ export const exportElementToPdf = async (element, rawFilename) => {
         targetDoc.style.maxWidth = '794px';
         targetDoc.style.minHeight = '1123px';
       }
+      // Remove status rows and any user-only elements in PDF export
+      const userOnlyElements = clonedDoc.querySelectorAll(
+        '.document-status-row, [data-pdf-hidden="true"]'
+      );
+      userOnlyElements.forEach((el) => {
+        el.remove();
+      });
+
       // Remove any heavy drop shadows for clean print rendering
       const docs = clonedDoc.querySelectorAll(
         '.shadow-md, .shadow-lg, .shadow-sm, .shadow-xl, .shadow-2xl'
