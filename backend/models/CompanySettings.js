@@ -108,6 +108,11 @@ const companySettingsSchema = new mongoose.Schema(
         default: 'Damage Policy: If any of the Goods are found to be damaged upon receipt, the Purchaser shall notify the Supplier in writing, providing evidence such as photographs and videos, within seven (3) days of receipt of the Good (terms and conditions apply).',
       },
     },
+    shipmentReferenceSettings: {
+      prefix: { type: String, default: 'GWC' },
+      nextNumber: { type: Number, default: 1 },
+      numberFormat: { type: String, default: '{prefix}-{yy}-{seq2}' },
+    },
     defaultSignatory: {
       name: { type: String, default: 'Authorized Signatory' },
       designation: { type: String, default: 'Director / Chief Executive Officer' },

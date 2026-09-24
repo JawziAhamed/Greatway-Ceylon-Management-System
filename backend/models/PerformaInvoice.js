@@ -54,7 +54,7 @@ const performaInvoiceSchema = new mongoose.Schema(
     },
     shipmentReference: {
       type: String,
-      default: 'SH 226-04',
+      default: '',
     },
     shippedPer: {
       type: String,

@@ -358,6 +358,17 @@ export default function SettingsPage() {
               </div>
 
               <div>
+                <label className="block font-semibold text-gray-700 mb-1">Business Registration No. (PV / BR No.) *</label>
+                <input
+                  type="text"
+                  value={formData.registrationNumber || ''}
+                  onChange={(e) => setFormData({ ...formData, registrationNumber: e.target.value })}
+                  placeholder="e.g. PV 00263042"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-xl font-mono font-semibold text-brand-900"
+                />
+              </div>
+
+              <div>
                 <label className="block font-semibold text-gray-700 mb-1">TAX / VAT / TIN No.</label>
                 <input
                   type="text"
@@ -750,6 +761,54 @@ export default function SettingsPage() {
               </div>
               <p className="text-[11px] text-gray-500">
                 Format: <code className="bg-white px-1.5 py-0.5 rounded border border-gray-200 font-mono">GC-PI-2026-0001</code>
+              </p>
+            </div>
+
+            {/* Shipment Reference Numbering */}
+            <div className="p-4 bg-gray-50 rounded-2xl border border-gray-200 space-y-3">
+              <h3 className="font-bold text-gray-900 text-sm">Shipment Reference Numbering</h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="font-medium text-gray-700 mb-1 block">Prefix</label>
+                  <input
+                    type="text"
+                    value={formData.shipmentReferenceSettings?.prefix ?? 'GWC'}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        shipmentReferenceSettings: {
+                          ...(formData.shipmentReferenceSettings || {}),
+                          prefix: e.target.value,
+                        },
+                      })
+                    }
+                    placeholder="e.g. GWC"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-xl font-mono"
+                  />
+                </div>
+                <div>
+                  <label className="font-medium text-gray-700 mb-1 block">Next Sequence Number</label>
+                  <input
+                    type="number"
+                    min="1"
+                    value={formData.shipmentReferenceSettings?.nextNumber ?? 1}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        shipmentReferenceSettings: {
+                          ...(formData.shipmentReferenceSettings || {}),
+                          nextNumber: Math.max(1, Number(e.target.value) || 1),
+                        },
+                      })
+                    }
+                    className="w-full px-3 py-2 border border-gray-300 rounded-xl font-mono"
+                  />
+                </div>
+              </div>
+              <p className="text-[11px] text-gray-500">
+                Format: <code className="bg-white px-1.5 py-0.5 rounded border border-gray-200 font-mono">
+                  {formData.shipmentReferenceSettings?.prefix || 'GWC'}-{String(new Date().getFullYear()).slice(-2)}-{String(formData.shipmentReferenceSettings?.nextNumber || 1).padStart(2, '0')}
+                </code> (e.g. <span className="font-mono text-brand-800 font-semibold">{formData.shipmentReferenceSettings?.prefix || 'GWC'}-{String(new Date().getFullYear()).slice(-2)}-01</span>)
               </p>
             </div>
 

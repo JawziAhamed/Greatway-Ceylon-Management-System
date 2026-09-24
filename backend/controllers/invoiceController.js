@@ -32,6 +32,43 @@ const generateInvoiceNumber = async () => {
   return number;
 };
 
+// Helper to generate shipment reference
+const generateShipmentReference = async (customSettings) => {
+  let settings = customSettings;
+  if (!settings) {
+    settings = await CompanySettings.findOne();
+    if (!settings) settings = await CompanySettings.create({});
+  }
+
+  const prefix = settings.shipmentReferenceSettings?.prefix || 'GWC';
+  const now = new Date();
+  const year = now.getFullYear();
+  const yy = String(year).slice(-2);
+  let format = settings.shipmentReferenceSettings?.numberFormat || '{prefix}-{yy}-{seq2}';
+
+  let nextSeq = settings.shipmentReferenceSettings?.nextNumber || 1;
+  let reference = '';
+  while (true) {
+    const seq = String(nextSeq);
+    const seq2 = seq.padStart(2, '0');
+    const seq3 = seq.padStart(3, '0');
+    const seq4 = seq.padStart(4, '0');
+    reference = format
+      .replace('{prefix}', prefix)
+      .replace('{year}', year)
+      .replace('{yy}', yy)
+      .replace('{seq4}', seq4)
+      .replace('{seq3}', seq3)
+      .replace('{seq2}', seq2)
+      .replace('{seq}', seq);
+    const exists = await PerformaInvoice.findOne({ shipmentReference: reference });
+    if (!exists) break;
+    nextSeq++;
+  }
+
+  return { reference, nextSeq };
+};
+
 // @desc    Get all performa invoices
 // @route   GET /api/invoices
 // @access  Private
@@ -86,7 +123,7 @@ const getInvoiceById = async (req, res) => {
   }
 };
 
-// @desc    Get preview of next invoice number
+// @desc    Get preview of next invoice number & shipment reference
 // @route   GET /api/invoices/next-number
 // @access  Private
 const getNextNumber = async (req, res) => {
@@ -106,7 +143,9 @@ const getNextNumber = async (req, res) => {
       .replace('{seq4}', seqPadded)
       .replace('{seq}', nextSeq);
 
-    res.json({ success: true, nextNumber: number });
+    const { reference: nextShipmentReference } = await generateShipmentReference(settings);
+
+    res.json({ success: true, nextNumber: number, nextShipmentReference });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
@@ -200,6 +239,33 @@ const createInvoice = async (req, res) => {
     const grandTotal = Number((subtotal - discountVal + taxVal).toFixed(2));
     const words = numberToWords(grandTotal, currency);
 
+    let finalShipmentRef = (shipmentReference || '').trim();
+    let compSettings = await CompanySettings.findOne();
+    if (!compSettings) compSettings = await CompanySettings.create({});
+
+    if (!finalShipmentRef) {
+      const { reference, nextSeq } = await generateShipmentReference(compSettings);
+      finalShipmentRef = reference;
+      if (!compSettings.shipmentReferenceSettings) {
+        compSettings.shipmentReferenceSettings = { prefix: 'GWC', nextNumber: 1, numberFormat: '{prefix}-{yy}-{seq2}' };
+      }
+      compSettings.shipmentReferenceSettings.nextNumber = nextSeq + 1;
+      await compSettings.save();
+    } else {
+      try {
+        const { reference, nextSeq } = await generateShipmentReference(compSettings);
+        if (finalShipmentRef === reference) {
+          if (!compSettings.shipmentReferenceSettings) {
+            compSettings.shipmentReferenceSettings = { prefix: 'GWC', nextNumber: 1, numberFormat: '{prefix}-{yy}-{seq2}' };
+          }
+          compSettings.shipmentReferenceSettings.nextNumber = nextSeq + 1;
+          await compSettings.save();
+        }
+      } catch (err) {
+        console.warn('Could not auto-increment shipment reference sequence:', err.message);
+      }
+    }
+
     const invoice = await PerformaInvoice.create({
       invoiceNumber,
       invoiceDate: invoiceDate || new Date(),
@@ -216,7 +282,7 @@ const createInvoice = async (req, res) => {
       },
       currency,
       paymentTerms,
-      shipmentReference: shipmentReference || 'SH 226-04',
+      shipmentReference: finalShipmentRef,
       shippedPer: shippedPer || 'Maersk , Salalah, Oman (CY)',
       vessel: vessel || '',
       voyageNo: voyageNo || 'OEL VARUN 639N',

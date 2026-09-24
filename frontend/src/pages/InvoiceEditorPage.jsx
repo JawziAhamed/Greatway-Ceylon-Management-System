@@ -41,7 +41,7 @@ export default function InvoiceEditorPage() {
   const [notes, setNotes] = useState('');
 
   // Shipping & Transport State
-  const [shipmentReference, setShipmentReference] = useState('SH 226-04');
+  const [shipmentReference, setShipmentReference] = useState('');
   const [shippedPer, setShippedPer] = useState('Maersk , Salalah, Oman (CY)');
   const [vessel, setVessel] = useState('MSC PRELUDE V');
   const [voyageNo, setVoyageNo] = useState('IW626R');
@@ -221,6 +221,9 @@ export default function InvoiceEditorPage() {
           const numRes = await axiosClient.get('/invoices/next-number');
           if (numRes.data.success) {
             setInvoiceNumber(numRes.data.nextNumber);
+            if (numRes.data.nextShipmentReference) {
+              setShipmentReference(numRes.data.nextShipmentReference);
+            }
           }
           if (settings?.invoiceSettings) {
             setPortOfLoading(settings.invoiceSettings.defaultPortOfLoading || 'COLOMBO PORT SRI LANKA');
@@ -663,7 +666,7 @@ export default function InvoiceEditorPage() {
                     type="text"
                     value={shipmentReference}
                     onChange={(e) => setShipmentReference(e.target.value)}
-                    placeholder="e.g. SH 226-04"
+                    placeholder="e.g. GWC-26-01"
                     className="w-full px-3 py-2 border border-gray-300 rounded-xl text-xs font-mono"
                   />
                 </div>

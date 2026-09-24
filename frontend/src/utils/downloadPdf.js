@@ -39,39 +39,52 @@ export const exportElementToPdf = async (element, rawFilename) => {
     }
   }
 
-  // 1. High-Resolution Canvas Rendering capturing the EXACT preview appearance
-  const canvas = await html2canvas(targetElement, {
-    scale: 2, // High resolution (300 DPI equivalent)
-    useCORS: true,
-    logging: false,
-    letterRendering: true,
-    backgroundColor: '#ffffff',
-    windowWidth: 1200,
-    onclone: (clonedDoc) => {
-      // Ensure target element is fixed at exactly 794px width and at least 1123px height
-      const targetDoc = clonedDoc.querySelector('.invoice-document-root, .quotation-document-root');
-      if (targetDoc) {
-        targetDoc.style.width = '794px';
-        targetDoc.style.maxWidth = '794px';
-        targetDoc.style.minHeight = '1123px';
-      }
-      // Remove status rows and any user-only elements in PDF export
-      const userOnlyElements = clonedDoc.querySelectorAll(
-        '.document-status-row, [data-pdf-hidden="true"]'
-      );
-      userOnlyElements.forEach((el) => {
-        el.remove();
-      });
-
-      // Remove any heavy drop shadows for clean print rendering
-      const docs = clonedDoc.querySelectorAll(
-        '.shadow-md, .shadow-lg, .shadow-sm, .shadow-xl, .shadow-2xl'
-      );
-      docs.forEach((d) => {
-        d.style.boxShadow = 'none';
-      });
-    },
+  // Safety net: temporarily hide status rows and user-only elements in the live DOM
+  // during canvas capture, then restore them immediately in finally block.
+  const hiddenElements = targetElement.querySelectorAll
+    ? targetElement.querySelectorAll('.document-status-row, [data-pdf-hidden="true"], [data-html2canvas-ignore="true"]')
+    : [];
+  const prevDisplayValues = [];
+  hiddenElements.forEach((el, idx) => {
+    prevDisplayValues[idx] = el.style.display;
+    el.style.display = 'none';
   });
+
+  try {
+    // 1. High-Resolution Canvas Rendering capturing the EXACT preview appearance
+    const canvas = await html2canvas(targetElement, {
+      scale: 2, // High resolution (300 DPI equivalent)
+      useCORS: true,
+      logging: false,
+      letterRendering: true,
+      backgroundColor: '#ffffff',
+      windowWidth: 1200,
+      onclone: (clonedDoc) => {
+        // Ensure target element is fixed at exactly 794px width and at least 1123px height
+        const targetDoc = clonedDoc.querySelector('.invoice-document-root, .quotation-document-root');
+        if (targetDoc) {
+          targetDoc.style.width = '794px';
+          targetDoc.style.maxWidth = '794px';
+          targetDoc.style.minHeight = '1123px';
+        }
+        // Remove status rows and any user-only elements in PDF export
+        const userOnlyElements = clonedDoc.querySelectorAll(
+          '.document-status-row, [data-pdf-hidden="true"], [data-html2canvas-ignore="true"]'
+        );
+        userOnlyElements.forEach((el) => {
+          el.style.display = 'none';
+          el.remove();
+        });
+
+        // Remove any heavy drop shadows for clean print rendering
+        const docs = clonedDoc.querySelectorAll(
+          '.shadow-md, .shadow-lg, .shadow-sm, .shadow-xl, .shadow-2xl'
+        );
+        docs.forEach((d) => {
+          d.style.boxShadow = 'none';
+        });
+      },
+    });
 
   if (!canvas || canvas.width === 0 || canvas.height === 0) {
     throw new Error('Failed to capture document canvas');
@@ -118,9 +131,14 @@ export const exportElementToPdf = async (element, rawFilename) => {
   const imgData = canvas.toDataURL('image/jpeg', 0.98);
   pdf.addImage(imgData, 'JPEG', x, y, finalWidth, finalHeight, undefined, 'FAST');
 
-  // Trigger download directly
-  pdf.save(filename);
-  return { success: true, pageCount: 1 };
+    // Trigger download directly
+    pdf.save(filename);
+    return { success: true, pageCount: 1 };
+  } finally {
+    hiddenElements.forEach((el, idx) => {
+      el.style.display = prevDisplayValues[idx] || '';
+    });
+  }
 };
 
 /**
@@ -160,6 +178,7 @@ export const downloadDocumentClientSide = async ({
     const element = React.createElement(Component, {
       [propName]: documentData,
       settings: settings || {},
+      hideStatus: true,
     });
 
     // Mount and wait for images and fonts to settle
@@ -262,6 +281,20 @@ export const downloadDocumentPdf = async ({
     return { success: true, method: 'server-binary' };
   } catch (serverErr) {
     console.warn('Server PDF unavailable, checking fallback:', serverErr.message);
+
+    if (documentData) {
+      try {
+        await downloadDocumentClientSide({
+          docType,
+          documentData,
+          settings,
+          filename,
+        });
+        return { success: true, method: 'client-offscreen' };
+      } catch (clientErr) {
+        console.warn('Client-side PDF fallback failed:', clientErr);
+      }
+    }
 
     if (typeof onFallback === 'function') {
       onFallback(serverErr);

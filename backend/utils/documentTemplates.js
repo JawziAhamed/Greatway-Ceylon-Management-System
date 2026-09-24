@@ -764,7 +764,7 @@ const generateInvoiceHTML = (invoice, settings = {}, logoBase64, signatureBase64
         <div class="company-details">
           ${companyAddress}<br>
           Email: ${email}<br>
-          TAX No: ${taxNo}
+          ${settings.registrationNumber ? `Reg No: ${settings.registrationNumber}<br>` : ''}TAX No: ${taxNo}
         </div>
       </div>
     </div>
